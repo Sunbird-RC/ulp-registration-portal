@@ -1,0 +1,112 @@
+<div class="container bg-gray-100">
+  <h5 class="mb-3 title pt-4 d-flex text-center">
+    {{'STUDENT_REGISTRATION_CLAIM_APPROVAL' | translate }}
+  </h5>
+  <div class="col-md-8">
+    <div class="form-group d-flex flex-row">
+      <label class="col-form-label">{{'SELECT_STATUS' | translate}} :</label>
+      <select class="ml-2 w-20 form-select" aria-label="Default select example" [(ngModel)]="model.status"
+        (ngModelChange)="onModelChange()" #status="ngModel">
+        <option [ngValue]="undefined" [disabled]="true">{{'SELECT_STATUS' | translate}}</option>
+        <option *ngFor="let status of statusValues" [value]="status.value">{{status.label}}</option>
+      </select>
+    </div>
+  </div>
+  <!-- UI static table below -->
+  <div class="table table-responsive table-hover" *ngIf="tableRows.length">
+    <table class="table mb-4" cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th>{{'SR_NO' | translate}}</th>
+          <th>{{'STUDENT_NAME' | translate}}</th>
+          <th>{{'GUARDIAN_NAME' | translate}}</th>
+          <th>{{'STUDENT_ID' | translate}}</th>
+          <th>{{'DATE_OF_BIRTH' | translate}}</th>
+          <th>{{'GRADE' | translate}}</th>
+          <th>{{'ACADEMIC_YEAR' | translate}}</th>
+          <th>{{'MOBILE_NUMBER' | translate}}</th>
+          <th>{{'ENROLLED_ON' | translate}}</th>
+          <th *ngIf="model.status === 'pending'">Status</th>
+          <th *ngIf="model.status === 'pending'">Pending since</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of tableRows; let index = index">
+          <td>{{index+1}}</td>
+          <td>{{user.student.student_name}}</td>
+          <td>{{user.gaurdian_name}}</td>
+          <td>{{user.student.student_id}}</td>
+          <td>{{user.student.dob}}</td>
+          <td>{{user.grade}}</td>
+          <td>{{user.acdemic_year}}</td>
+          <td>{{user.mobile}}</td>
+          <td>{{user?.enrollon | date: 'MM/yyyy'}}</td>
+          <td *ngIf="model.status === 'pending'">{{user.claim_status}}</td>
+          <td *ngIf="model.status === 'pending'">{{user.osCreatedAt}}</td>
+          <td *ngIf="model.status === 'pending'">
+            <img src="assets/images/checkicon.png" (click)="openPopup(user)" alt="" class="cursor-pointer">
+            <img src="assets/images/closecheck.png" (click)="rejectPopup(user)" alt="" class="cursor-pointer">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h5 class="text-center mt-4" *ngIf="!isLoading && !tableRows.length">{{'NO_RECORDS_FOUND' | translate }}</h5>
+  <ng-container *ngIf="isLoading">
+    <br>
+    <div class="text-center pt-4">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">{{'LOADING' | translate }}</span>
+      </div>
+      <div class="text-center">
+        {{'LOADING_PLEASE_WAIT' | translate}}
+      </div>
+    </div>
+  </ng-container>
+  <br>
+</div>
+<div class="d-flex justify-content-end align-items-start p-2 pb-3 pt-5 table-footer"
+  *ngIf="studentDetails?.length > pageSize">
+  <ngb-pagination class="ml-2" [collectionSize]="studentDetails?.length" [(page)]="page" [pageSize]="pageSize"
+    [maxSize]="5" [rotate]="true" [boundaryLinks]="true" (pageChange)="pageChange()">
+  </ngb-pagination>
+</div>
+
+
+<ng-template #approveModal tabindex="-1" role="dialog" aria-labelledby="approveModal">
+  <div class="modal-content">
+    <div class="modal-body fs-14">
+      {{'ARE_YOU_SURE_WANT_TO_APPROVE' | translate }}
+      <div class="d-flex justify-content-center">
+        <button type="button" (click)="approveConfirm(false)" class="custom-button default-button mt-20 mr-5 p-32 fs-14"
+          (click)="raiseInteractEvent('approve-cancel')">
+          {{'NO_CANCEL' | translate}}
+        </button>
+        <button type="button" (click)="approveConfirm(true)" class="custom-button blue-button mt-20 p-32 fs-14"
+          (click)="raiseInteractEvent('approve-confirm')">
+          {{'YES_CONFIRM' | translate}}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #rejectModal tabindex="-1" role="dialog" aria-labelledby="rejectModal">
+  <div class="modal-content">
+    <div class="modal-body fs-14">
+      {{'ARE_YOU_SURE_WANT_TO_REJECT' | translate}}
+      <div class="d-flex justify-content-center">
+        <button type="button" (click)="rejectConfirm(false)" class="custom-button default-button mt-20 mr-5 p-32 fs-14"
+          (click)="raiseInteractEvent('reject-cancel')">
+          {{'NO_CANCEL' | translate}}
+        </button>
+        <button type="button" (click)="rejectConfirm(true)" class="custom-button blue-button mt-20 p-32 fs-14"
+          (click)="raiseInteractEvent('reject-confirm')">
+          {{'YES_CONFIRM' | translate}}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

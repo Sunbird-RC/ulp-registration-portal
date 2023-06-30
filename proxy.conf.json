@@ -1,0 +1,30 @@
+{
+    "/registry/api/v1": {
+      "target": "https://sunbird-certificate-demo.xiv.in",
+      "changeOrigin": true,
+      "logLevel": "debug",
+      "secure": false
+
+    },
+
+    "/registry/api": {
+      "target": "https://sunbird-certificate-demo.xiv.in",
+      "changeOrigin": true,
+      "logLevel": "debug",
+      "secure": false
+
+    },
+
+    "/registry/api/docs": {
+      "target": "https://sunbird-certificate-demo.xiv.in",
+      "changeOrigin": true,
+      "logLevel": "debug",
+      "secure": false
+    },
+    "/schema/jsonld": {
+      "target": "https://ulp.uniteframework.io/cred-schema",
+      "changeOrigin": true,
+      "logLevel": "debug",
+      "secure": false
+    }
+  }
