@@ -1,34 +1,23 @@
 <div class="sidebar">
   <section class='sidebarContainer'>
-    <div *ngFor="let item of menuList" class="menu" [routerLink]="[item.link]" routerLinkActive="active"
-      [routerLinkActiveOptions]="{exact:true}">
-      <i [class]="item.class"></i>
-      <div class="title">{{item.label}}</div>
-    </div>
-    <div class="menu" (click)="logout()">
-      <i class="fa fa-sign-out-alt fs-22 text-primary-color"></i>
-      <div class="title">{{'LOGOUT' | translate }}</div>
-    </div>
-  </section>
-
-  <section *ngIf="showInstructions">
-    <div class="instructions pt-5">
-      <h6 class="title">
-        <i class="fa fa-info-circle"></i>
-        {{'INSTRUCTIONS' | translate }}
-      </h6>
-      <ul>
-        <li>{{'STEP_ONE' | translate}} <div><i class="fa fa-download"></i> &nbsp;{{'DOWNLOAD_CSV_TEMPLATE' | translate
-            }}</div>
-        </li>
-        <li>{{'STEP_TWO' | translate}}<div><i class="fa fa-check-circle"></i>&nbsp;{{'SELECT_GRADE_AY' | translate }}
-          </div>
-        </li>
-        <li>{{'STEP_THREE' | translate}}<div><i class="fa fa-upload"></i>&nbsp;{{'UPLOAD_FILLED_UP_CSV' | translate }}
-          </div>
-        </li>
-      </ul>
+    <div>
+      <ng-container *ngIf="menuList && isKYCCompleted">
+        <div *ngFor="let item of menuList" class="menu mb-2 s-3" [routerLink]="[item?.redirectTo]"
+          routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="raiseInteractEvent(item?.id)">
+          <i [class]="item?.className"></i>
+          <div class="title">{{item?.title | translate}}</div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!isKYCCompleted">
+        <div *ngFor="let item of menuList" class="menu mb-2 s-3">
+          <i [class]="item?.className" class="disable"></i>
+          <div class="title disable">{{item?.title | translate}}</div>
+        </div>
+      </ng-container>
+      <div class="menu" (click)="logout()">
+        <i class="fa fa-sign-out fs-22"></i>
+        <div class="font-weight-bold">{{'LOGOUT' | translate }}</div>
+      </div>
     </div>
   </section>
-
 </div>

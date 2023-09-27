@@ -1,10 +1,29 @@
 {
     "environment": "development",
-    "appType": "issuer",
+    "keycloak": {
+        "url": "https://devulp.uniteframework.io/auth",
+        "clientId": "registry-frontend",
+        "realm": "sunbird-rc"
+    },
     "configFolder": "/assets/config/ui-config",
+    "languageFolder": "/assets/i18n",
+    "title": "ULP Issuance Portal",
+    "domainName": "https://devulp.uniteframework.io",
+    "baseUrl": "https://devulp.uniteframework.io/registry/api/v1",
+    "bffBaseUrl": "https://devulp.uniteframework.io",
+    "bffUrl": "https://devulp.uniteframework.io/ulp-bff",
+    "bulkIssuance": "https://devulp.uniteframework.io/bulk-issuance",
+    "telemetryUrl": "https://devulp.uniteframework.io/telemetry",
+    "schemaUrl": "https://devulp.uniteframework.io/registry/api/docs/swagger.json",
+    "footerText": "Universal Learners Passport",
+    "languages": [
+        "en",
+        "hi"
+    ],
+    "appType": "attestation",
     "default_theme": {
-        "logoPath": "https://user-images.githubusercontent.com/580711/160328409-37b07505-399f-4feb-8dcd-4a51769c5a1b.svg",
-        "primaryColor": "#050C44",
+        "logoPath": "/assets/images/logo.png",
+        "primaryColor": "#0D6EFD",
         "secondaryColor": "#1987B6",
         "bodyBackground": "#F6F8FC",
         "cardBackground": "#FFFFFF",
@@ -15,10 +34,11 @@
         "secondaryTextColor": "#000000",
         "headerLinkColor": "#000000",
         "linkColor": "#443DF6",
-        "secondaryBtnBgColor": "#e0edf5"
+        "secondaryBtnBgColor": "#e0edf5",
+        "cardBorder": "#00000020"
     },
     "dark_theme": {
-        "logoPath": "https://user-images.githubusercontent.com/580711/160328409-37b07505-399f-4feb-8dcd-4a51769c5a1b.svg",
+        "logoPath": "/assets/images/logo.png",
         "primaryColor": "#1987B6",
         "secondaryColor": "#1987B6",
         "bodyBackground": "#080808",
@@ -30,14 +50,7 @@
         "secondaryTextColor": "#c3c3c3",
         "headerLinkColor": "#0098AB",
         "linkColor": "#443DF6",
-        "secondaryBtnBgColor": "#e0edf5"
-    },
-    "baseUrl": "https://ulp.uniteframework.io/ulp-bff",
-    "schemaUrl": "https://ulp.uniteframework.io/registry/api/docs/swagger.json",
-    "title": "AVSAR Registration Portal",
-    "footerText": "AVSAR Registration Portal",
-    "languages": [
-        "en",
-        "hi"
-    ]
+        "secondaryBtnBgColor": "#e0edf5",
+        "cardBorder": "#ffffff20"
+    }
 }

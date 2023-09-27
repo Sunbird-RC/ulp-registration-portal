@@ -429,7 +429,7 @@ export const editorConfig = {
                 datetime: true,
                 radio: false,
                 selectboxes: false,
-                checkbox: true
+                checkbox: false
             }
         },
         advanced: false,

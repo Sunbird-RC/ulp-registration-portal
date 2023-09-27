@@ -7,13 +7,18 @@ import { catchError, map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthConfigService {
-  private config: any;
+  private _config: any;
 
   constructor(private httpClient: HttpClient) { }
 
+
+  get config(): any {
+    return this._config;
+  }
+
   public getConfig(): Observable<any> {
-    if (this.config) {
-      return of(this.config);
+    if (this._config) {
+      return of(this._config);
     }
     return this.httpClient.get('./assets/config/config.json').pipe(
       catchError((error) => {
@@ -22,7 +27,7 @@ export class AuthConfigService {
       }),
       map((response) => {
         if (response) {
-          this.config = response;
+          this._config = response;
           return response;
         } else {
           return null;

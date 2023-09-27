@@ -22,6 +22,21 @@ dl,dt{
         margin: 0 auto !important;
     }
 }
+pt-1{
+    padding-top: 1rem;
+}
+// .right-s-modal{
+//     &.modal{
+//         right: 0 !important;
+//       //  width: 70% !important;
+//         left: inherit !important;
+//     }
+//     .modal-dialog{
+//         max-width: 480px !important;
+//         margin: 0 auto !important;
+//     }
+// }
+
 .right-l-modal{
     &.modal{
         right: 0 !important;
@@ -176,7 +191,7 @@ img {
 
 
 .noDataMsg {
-    background-color: white !important;
+    background-color: var(--cardBackground) !important;
     margin-top: -33px !important;
     position: relative !important;
 }
@@ -188,4 +203,15 @@ img {
 
 .mt-0 {
     margin-top: 0 ;
+}
+
+.mt-85{
+    margin-top: 85px;
+}
+
+@media (max-width: 767.98px) {
+    .mt-85{
+        margin-top: 125px;
+    }
+    
 }

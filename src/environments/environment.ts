@@ -6,11 +6,11 @@ import { GeneralService } from "src/app/services/general/general.service";
 
 export const environment = {
   production: false,
-  baseUrl: 'https://ulp.uniteframework.io/ulp-bff',
+  baseUrl: '',
   schemaUrl: 'assets/config/schema.json', //asset path OR URL
   logo: 'assets/images/logo.png', //asset path OR URL
   keycloakConfig: {
-    url: 'https://sunbird-certificate-demo.xiv.in/auth',
+    url: 'https://ndear.xiv.in/auth',
     realm: 'sunbird-rc',
     clientId: 'registry-frontend'
   }

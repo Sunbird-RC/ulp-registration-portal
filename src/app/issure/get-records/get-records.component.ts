@@ -19,11 +19,17 @@ export class GetRecordsComponent implements OnInit {
 
   documentName: string;
   pdfName: any;
+  osid: string;
+  schemaObj;
+  tempObj: any;
+  nameArray = [];
+  nameArray2;
+
   constructor(public router: Router, public route: ActivatedRoute,
     public generalService: GeneralService, private http: HttpClient,
     private config: AppConfig) { 
       this.documentName = this.route.snapshot.paramMap.get('document'); 
-     
+      this.osid = this.route.snapshot.paramMap.get('osid'); 
 
    // this.item = this.router.getCurrentNavigation().extras.state.item;
 
@@ -40,24 +46,17 @@ this.getRecords();
   }
 
   getRecords(){
-  //   let payout = {
-  //     "filters": {}
-  // }
-  //   this.generalService.postData('/' + this.documentName + '/search', payout).subscribe((res) => {
-  //   console.log(res);
-  //   this.recordItems = res;
-  //   }, err=>{
-  //     this.recordItems = [];
-  //     console.log(err);
-  //   });
-
-  const payload = {
-      "issuer": "did:ulp:f08f7782-0d09-4c47-aacb-9092113bc33e"
+    let payout = {
+      "filters": {}
   }
-  this.generalService.postData('https://ulp.uniteframework.io/cred-base/credentials', payload).subscribe((res) => {
-    console.log("res", res);
+    this.generalService.postData('/' + this.documentName + '/search', payout).subscribe((res) => {
+    console.log(res);
     this.recordItems = res;
-  });
+    
+    }, err=>{
+      this.recordItems = [];
+      console.log(err);
+    });
   }
 
   addRecord()
@@ -77,17 +76,7 @@ this.getRecords();
     };
    
     this.downloadPDF();
-    // this.http.get('https://sunbird-certificate-demo.xiv.in/registry/api/v1/' + this.documentName + '/' + item.osid, {headers}).subscribe(
-    //   (data) => {
-       
-    //     console.log(data);
-    //   },
-    //   (error) => {
-    //     console.log('getPDF error: ',error);
-    //   }
-    // );
-
-   
+    
   }
   onPress(){
     this.router.navigateByUrl['/pdf-view'];

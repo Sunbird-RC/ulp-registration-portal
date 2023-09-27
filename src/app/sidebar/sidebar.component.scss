@@ -1,15 +1,25 @@
+section {
+  display: block;
+  margin-top: 80px;
+}
+.sidebar {
+  border-right: 1px solid #e5e5e5;
+  height: 100vh;
+}
 .sidebarContainer {
+  padding-top: 10px;
   display: flex;
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: flex-start;
   align-content: center;
   flex-direction: column;
+  // box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
 
   div {
-    color: #050c44;
-    margin: 0.5rem 0.5rem 0.5rem 0;
-    font-weight: 400;
+    // color: #050c44;
+    margin: 0.5rem 0.5rem 1rem 0.5rem;
+    // font-weight: 400;
   }
 
   .menu {
@@ -17,25 +27,24 @@
     flex-direction: row;
     align-items: center;
     cursor: pointer;
-    min-width: 210px;
+    min-width: 300px;
     border-radius: 0 8px 8px 0;
     border-left: 5px solid transparent;
-    // margin-left: 20px;
+    color: #5d7285 ;
+    // opacity: 0.5;
+    font-weight: 400;
+    font-size: 16px;
+    opacity: 1;
 
     i {
       padding: 0 15px;
-      font-size: 17px;
+      font-size: 22px;
       vertical-align: middle;
+      color: #9c9c9c;
+      width: 45px;
     }
   }
-
-  .active {
-    color: #050c44;
-    font-weight: 600;
-    border-left: 5px solid #ff740f;
-    background: #f2f2f2;
-  }
-}
+ }
 
 .instructions {
   margin: 1rem;
@@ -108,7 +117,35 @@
 }
 .disable,
 .disable ~ .title {
-  color: #ccc;
+  // color: #ccc;
   opacity: 0.7;
   cursor: default;
+}
+.bottom-fixed {
+  position: fixed;
+  bottom: 3%;
+}
+
+.bottom-btn {
+  background: var(--primaryColor) !important;
+  color: #fff !important;
+  margin-left: 16px !important;
+  border-radius: 8px !important;
+  min-width: 282px !important;
+
+  i {
+    color: #fff !important;
+  }
+}
+
+.active{
+  background: #007BFF;
+  border-radius: 7px !important;
+  .title{
+    color: #fff !important;
+    font-weight: 600;
+  }
+  .fa{
+    color: #fff !important;
+  }
 }

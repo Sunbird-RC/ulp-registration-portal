@@ -1,10 +1,10 @@
-<!-- <app-header [headerFor]='headerName'></app-header> -->
+<app-header [headerFor]='headerName'></app-header>
 <br />
 
 
 
+
 <div class="container">
-    <h3>Issue Credentials</h3>
     <!-- <div class="d-flex flex-row flex-nowrap overflow-auto">
         <div class="card card-block small-card mx-2 p-2" *ngFor="let card of cards">
             <p class="p16 mb-1">{{card?.title}}</p>
@@ -15,21 +15,33 @@
     </div> -->
 <br />
     <div class="d-flex mt-3" *ngIf="documentName">
-        <a  href="" class="line-height32" onClick="history.go(-1); return false;"><i
-            class="fa fa-angle-left primary-text"></i> </a> &nbsp; &nbsp;
+        <a  class="line-height32" href="/dashboard"><i
+            class="fa fa-angle-left primary-text mb-2"></i> </a> &nbsp; &nbsp;
             
-        <span class="heading-2">{{documentName}}</span>
+        <span class="heading-2 mt-1 fw-bold">{{documentName}}</span>
         
     </div>
+
+   
 
     <div class="mb-3 mt-3">
         <span class="heading-2" *ngIf="recordItems?.length == 1 || !recordItems?.length">{{recordItems?.length}} Record</span>
         <span class="heading-2" *ngIf="recordItems?.length > 1">{{recordItems?.length}} Records</span>
         
 
-        <!-- <a> 
-            <button type="button" routerLink="/add-records/{{documentName}}"
-            class="btn btn-primary btn-primary-sm text-capitalize float-end p0">Add </button></a> -->
+        
+            <div class="ml-4 float-end">
+                <div data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">            
+                    <!-- <i class="fa fa-ellipsis-h text-secondary cursor-pointer" aria-hidden="true"></i> -->
+                    <!-- routerLink="/add-records/{{documentName}}" -->
+                    <a> <button type="button" 
+                        class="btn btn-primary btn-primary-sm text-capitalize  p0">Add </button></a>
+                </div>
+                <div class="dropdown-menu float-end">
+                <a class="dropdown-item" href="/add-records/{{documentName}}/{{osid}}">Add Single record</a>
+                <a class="dropdown-item" href="/bulk-records/{{documentName}}/{{osid}}">Add Bulk record</a>
+                </div>
+            </div>
     </div>
 
     <div class="card" *ngIf="!recordItems?.length">
@@ -42,16 +54,15 @@
     <div class="card" *ngIf="recordItems?.length">
     <table class="card-body">
         <tr>
-          <th class="heading-4 sb-gray-color">Id</th>
-          <th class="heading-4 sb-gray-color">Grade</th>
+          <th class="heading-4 sb-gray-color">Name</th>
+          <th class="heading-4 sb-gray-color">Mobile Number </th>
+          <!-- <th class="heading-4 sb-gray-color">Issued Date</th> -->
           <th></th>
         </tr>
         <tr *ngFor="let item of recordItems" class="p-3">
-          <!-- <td class="heading-3 sb-text-primary">{{item?.name}}</td>
-          <td class="heading-3">{{item?.contact}}</td>
-          <td class="heading-3">{{item?.date}}</td> -->
-          <td class="heading-3">{{item?.signed?.credentialSubject?.id}}</td>
-          <td class="heading-3">{{item?.signed?.credentialSubject?.grade}}</td>
+          <td class="heading-3 sb-text-primary">{{item?.name}}</td>
+          <td class="heading-3">{{item?.contact | mask:0:6}}</td>
+       <!-- ?   <td class="heading-3">{{item?.osCreatedAt | date : 'dd MMM y'}} </td> -->
           <td class="d-flex justify-content-end">
                <!--   <div (click)="downloadVc(item)">
                 <i class="fa fa-download sb-text-primary cursor-pointer" aria-hidden="true" title="Download"></i>
@@ -63,15 +74,7 @@
             </div> 
         </a>
      
-            <!-- <div class="ml-4">
-                <div data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">            
-                    <i class="fa fa-ellipsis-h text-secondary cursor-pointer" aria-hidden="true"></i>
-                </div>
-                <div class="dropdown-menu">
-                <a class="dropdown-item" href="#">Add Single record</a>
-                <a class="dropdown-item" href="#">Add Bulk record</a>
-                </div>
-            </div> -->
+           
           </td>
           <!-- <td class="float-end text-primary"> <i class="fa fa-pencil-square-o" aria-hidden="true"></i></td> -->
         </tr>

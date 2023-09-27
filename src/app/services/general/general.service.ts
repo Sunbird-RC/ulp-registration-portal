@@ -1,48 +1,34 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { DataService } from '../data/data-request.service';
 import { environment } from '../../../environments/environment';
-import { HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subscriber } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, Subscriber } from 'rxjs';
 import { AppConfig } from 'src/app/app.config';
 import { TranslateService } from '@ngx-translate/core';
-import { retry } from 'rxjs/operators';
-
+import { map } from 'rxjs/operators';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class GeneralService {
-  private _pendingRequestCount = new BehaviorSubject<any>({ count: 0 });
-  private _pendingRequestCount$ = this._pendingRequestCount.asObservable();
-  baseUrl: string;
-
-  // baseUrl = this.config.getEnv('baseUrl');
+  baseUrl = this.config.getEnv('baseUrl');
+  bffUrl = this.config.getEnv('bffBaseUrl');
   translatedString: string;
-  public languageChange = new EventEmitter<any>();
-  constructor(public dataService: DataService, private config: AppConfig, public translate: TranslateService) {
-    this.baseUrl = environment.baseUrl;
+  constructor(
+    public dataService: DataService,
+    private http: HttpClient,
+    private config: AppConfig,
+    public translate: TranslateService,
+  ) {
   }
 
-  getPendingRequestCount() {
-    return this._pendingRequestCount$;
-  }
-
-  setPendingRequestCount(count: number) {
-    return this._pendingRequestCount.next({ count: count });
-  }
-
-  postData(apiUrl, data) {
+  postData(apiUrl, data, isBFF = false) {
     var url;
     if (apiUrl.indexOf('http') > -1) {
       url = apiUrl
     } else {
-      if (apiUrl.charAt(0) == '/') {
-        url = `${this.baseUrl}${apiUrl}`
-      }
-      else {
-        url = `${this.baseUrl}/${apiUrl}`;
-      }
+      url = isBFF ? `${this.bffUrl}${apiUrl}` : apiUrl.charAt(0) === '/' ? `${this.baseUrl}${apiUrl}` : `${this.baseUrl}/${apiUrl}`
     }
 
     const req = {
@@ -136,56 +122,130 @@ export class GeneralService {
     return this.translatedString;
   }
 
-  postStudentData(apiUrl, data) {
+  attestationReq(apiUrl, data) {
+    let url = `${this.baseUrl}${apiUrl}`;
     const req = {
-      url: `${this.baseUrl}/v1/sso/studentDetailV2`,
+      url: url,
       data: data
     };
-
-    return this.dataService.post(req).pipe(retry(2));
-  }
-
-  approveStudentData(data) {
-    const req = {
-      url: `${this.baseUrl}/v1/credentials/approveStudentV2`,
-      data: data
-    };
-
-    return this.dataService.post(req).pipe(retry(2));
+    return this.dataService.put(req);
   }
 
 
-  rejectStudentData(data) {
-    const req = {
-      url: `${this.baseUrl}/v1/credentials/rejectStudentv2`,
-      data: data
-    };
+  openPDF(url) {
+    url = `${this.baseUrl}` + '/' + `${url}`;
 
-    return this.dataService.post(req).pipe(retry(2));
+    let requestOptions = { responseType: 'blob' as 'blob' };
+    // post or get depending on your requirement
+    this.http.get(url, requestOptions).pipe(map((data: any) => {
+
+      let blob = new Blob([data], {
+        type: 'application/pdf' // must match the Accept type
+        // type: 'application/octet-stream' // for excel 
+      });
+      var link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+
+      window.open(link.href, '_blank')
+      // link.download =  'temp.pdf';
+      // link.click();
+      // window.URL.revokeObjectURL(link.href);
+
+    })).subscribe((result: any) => {
+    });
   }
 
-  setLanguage(langKey: string) {
-    localStorage.setItem('setLanguage', langKey);
-    this.translate.use(langKey);
-  }
+  clearEmptyObjects(o) {
+    for (let k in o) {
+      if (!o[k] || typeof o[k] !== "object") {
+        continue // If null or not an object, skip to the next iteration
+      }
 
-  getDaysDifference(fromDate: string, toDate?) {
-    let date1 = new Date(fromDate);
-    let date2 = new Date();
-    if (toDate) {
-      date2 = new Date(toDate);
+      // The property is an object
+      if (Object.keys(o[k]).length === 0) {
+        delete o[k]; // The object had no properties, so delete that property
+      }
     }
-    const diffTime = Math.abs(date2.getTime() - date1.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return o;
+  }
 
-    if (diffDays === 1) {
-      return '1 Day';
+  createPath(obj, path, value = null) {
+    path = typeof path === 'string' ? path.split('.') : path;
+    let current = obj;
+    while (path.length > 1) {
+      const [head, ...tail] = path;
+      path = tail;
+      if (current[head] === undefined) {
+        current[head] = {};
+      }
+      current = current[head];
     }
-    return `${diffDays} Days`
+    current[path[0]] = value;
+    return obj;
+  };
+
+  setPathValue(obj, path, value) {
+    let keys;
+    if (typeof path === 'string') {
+      keys = path.split(".");
+    }
+    else {
+      keys = path;
+    }
+    const propertyName = keys.pop();
+    let propertyParent = obj;
+    while (keys.length > 0) {
+      const key = keys.shift();
+      if (!(key in propertyParent)) {
+        propertyParent[key] = {};
+      }
+      propertyParent = propertyParent[key];
+    }
+    propertyParent[propertyName] = value;
+    return obj;
   }
 
-  emitLanguageChangeEvent(language: any) {
-    this.languageChange.emit(language);
+  findPath(obj, value, path) {
+    if (typeof obj !== 'object') {
+      return false;
+    }
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        let t = path;
+        let v = obj[key];
+        let newPath = path ? path.slice() : [];
+        newPath.push(key);
+        if (v === value) {
+          return newPath;
+        } else if (typeof v !== 'object') {
+          newPath = t;
+        }
+        let res = this.findPath(v, value, newPath);
+        if (res) {
+          return res;
+        }
+      }
+    }
+    return false;
   }
+
+
+  ObjectbyString(o, s) {
+    s = s.replace(/\[(\w+)\]/g, '.$1');
+    s = s.replace(/^\./, '');
+    let a = s.split('.');
+    for (let i = 0, n = a.length; i < n; ++i) {
+      let k = a[i];
+      if (k in o) {
+        o = o[k];
+      } else {
+        return;
+      }
+    }
+    return o;
+  };
+
+
+
 }
 

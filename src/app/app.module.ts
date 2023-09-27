@@ -1,160 +1,134 @@
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, InjectionToken, NgModule } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { NgbAccordionModule } from '@ng-bootstrap/ng-bootstrap';
-import { ToastrModule } from 'ngx-toastr';
-import { APP_INITIALIZER } from '@angular/core';
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
+import { NgbAccordionModule, NgbPaginationModule, NgbPopoverModule, NgbProgressbarModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { NgxPaginationModule } from 'ngx-pagination';
 import { AngularMultiSelectModule } from 'angular2-multiselect-dropdown';
+import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
+import { NgxPaginationModule } from 'ngx-pagination';
+import { ToastrModule } from 'ngx-toastr';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
 // formly
-import { FormlyModule, FormlyFieldConfig } from '@ngx-formly/core';
 import { FormlyBootstrapModule } from '@ngx-formly/bootstrap';
+import { DatepickerModule, BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { FORMLY_CONFIG, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
+import { VerifyModule } from 'vc-verification';
 import { ArrayTypeComponent } from '../app/forms/types/array.type';
-import { ObjectTypeComponent } from '../app/forms/types/object.type';
-import { MultiSchemaTypeComponent } from '../app/forms/types/multischema.type';
-import { NullTypeComponent } from '../app/forms/types/null.type';
 import { AutocompleteTypeComponent } from '../app/forms/types/autocomplete.type';
 import { FormlyColorInput } from '../app/forms/types/color.type';
-import { initializeKeycloak } from './utility/app.init';
+import { MultiSchemaTypeComponent } from '../app/forms/types/multischema.type';
+import { NullTypeComponent } from '../app/forms/types/null.type';
+import { ObjectTypeComponent } from '../app/forms/types/object.type';
 import { initLang } from './multilingual.init';
+import { initializeKeycloak } from './utility/app.init';
 
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
 
 //Local imports
-import { FormsComponent } from './forms/forms.component';
-import { LayoutsComponent } from './layouts/layouts.component';
-import { ModalRouterEditLinkDirective } from '../app/layouts/modal/modal.directive';
-import { ModalRouterAddLinkDirective } from '../app/layouts/modal/modal.directive';
-import { PanelsComponent } from './layouts/modal/panels/panels.component';
-import { EditPanelComponent } from './layouts/modal/panels/edit-panel/edit-panel.component';
-import { AddPanelComponent } from './layouts/modal/panels/add-panel/add-panel.component';
-import { TablesComponent } from './tables/tables.component';
-import { HeaderComponent } from './header/header.component';
-import { FormlyFieldFile } from './forms/types/file.type';
-import { FileValueAccessor } from './forms/types/file-value-accessor';
-import { DocViewComponent } from './layouts/doc-view/doc-view.component';
-import { FormlyFieldNgSelect } from './forms/types/multiselect.type';
-import { Bootstrap4FrameworkModule } from 'angular6-json-schema-form';
-import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
-import { AttestationComponent } from './tables/attestation/attestation.component';
-import { InstallComponent } from './install/install.component';
-import { HomeComponent } from './home/home.component';
-import { FormlyHorizontalWrapper } from './forms/types/horizontal.wrapper';
-import { AppConfig } from './app.config';
-import { PanelWrapperComponent } from './forms/types/group.type';
-import { LogoutComponent } from './authentication/logout/logout.component';
+import { QuarModule } from '@altack/quar';
+// import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
+// import { Bootstrap4FrameworkModule } from 'angular6-json-schema-form';
 import { SearchComponent } from '../app/discovery/search/search.component';
+import { ModalRouterAddLinkDirective, ModalRouterEditLinkDirective } from '../app/layouts/modal/modal.directive';
+import { AppConfig } from './app.config';
 import { AuthConfigService } from './authentication/auth-config.service';
-import { DocumentsComponent } from './documents/documents.component';
+import { LogoutComponent } from './authentication/logout/logout.component';
 import { AddDocumentComponent } from './documents/add-document/add-document.component';
-import { WebcamModule } from 'ngx-webcam';
+import { BrowseDocumentsComponent } from './documents/browse-documents/browse-documents.component';
+import { DocumentsComponent } from './documents/documents.component';
 import { ScanDocumentComponent } from './documents/scan-document/scan-document.component';
 import { ScanQrCodeComponent } from './documents/scan-qr-code/scan-qr-code.component';
-import { QuarModule } from '@altack/quar';
-import { BrowseDocumentsComponent } from './documents/browse-documents/browse-documents.component';
-import { RegistrationComponent } from './registration/registration.component';
-import { LoginComponent } from './login/login.component';
+import { FormsComponent } from './forms/forms.component';
+import { FileValueAccessor } from './forms/types/file-value-accessor';
+import { FormlyFieldFile } from './forms/types/file.type';
+import { FormlyFieldNgSelect } from './forms/types/multiselect.type';
+import { HeaderComponent } from './header/header.component';
+import { HomeComponent } from './home/home.component';
+import { InstallComponent } from './install/install.component';
+import { DocViewComponent } from './layouts/doc-view/doc-view.component';
+import { LayoutsComponent } from './layouts/layouts.component';
+import { AddPanelComponent } from './layouts/modal/panels/add-panel/add-panel.component';
+import { EditPanelComponent } from './layouts/modal/panels/edit-panel/edit-panel.component';
+import { PanelsComponent } from './layouts/modal/panels/panels.component';
+import { AttestationComponent } from './tables/attestation/attestation.component';
+import { TablesComponent } from './tables/tables.component';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ColorPickerModule } from 'ngx-color-picker';
+import { VerifyCertificateComponent } from './issure/verify-certificate/verify-certificate.component';
 
-import { VerifyModule } from 'vc-verification'
 
-//form validations
-export function minItemsValidationMessage(err, field: FormlyFieldConfig) {
-  return `should NOT have fewer than ${field.templateOptions.minItems} items`;
-}
-
-export function maxItemsValidationMessage(err, field: FormlyFieldConfig) {
-  return `should NOT have more than ${field.templateOptions.maxItems} items`;
-}
-
-export function minlengthValidationMessage(err, field: FormlyFieldConfig) {
-  return `should NOT be shorter than ${field.templateOptions.minLength} characters`;
-}
-
-export function maxlengthValidationMessage(err, field: FormlyFieldConfig) {
-  return `should NOT be longer than ${field.templateOptions.maxLength} characters`;
-}
-
-export function minValidationMessage(err, field: FormlyFieldConfig) {
-  return `should be >= ${field.templateOptions.min}`;
-}
-
-export function maxValidationMessage(err, field: FormlyFieldConfig) {
-  return `should be <= ${field.templateOptions.max}`;
-}
-
-export function multipleOfValidationMessage(err, field: FormlyFieldConfig) {
-  return `should be multiple of ${field.templateOptions.step}`;
-}
-
-export function exclusiveMinimumValidationMessage(err, field: FormlyFieldConfig) {
-  return `should be > ${field.templateOptions.step}`;
-}
-
-export function exclusiveMaximumValidationMessage(err, field: FormlyFieldConfig) {
-  return `should be < ${field.templateOptions.step}`;
-}
-
-export function constValidationMessage(err, field: FormlyFieldConfig) {
-  return `should be equal to constant "${field.templateOptions.const}"`;
-}
+// Create custom Injection Token
+const ConfigDeps = new InjectionToken<(() => Function)[]>('configDeps');
 
 function initConfig(config: AppConfig) {
   return () => config.load()
 }
 
-export function createTranslateLoader(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+let baseConfig = require('../assets/config/config.json')
+
+let configData = {
+  baseUrl: baseConfig['baseUrl']
 }
 
-import ISO6391 from 'iso-639-1';
-import { PagesComponent } from './pages/pages.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import ISO6391 from 'iso-639-1';
 import { environment } from '../environments/environment';
 
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
-import { DocDetailViewComponent } from './documents/doc-detail-view/doc-detail-view.component';
 // import { FaqComponent } from './custom-components/faq/faq.component';
-import { SafeHtmlPipe } from './safe-html.pipe';
-import { initTheme } from './theme.config';
-import { DocTypesComponent } from './tables/doc-types/doc-types.component';
-import { DashboardComponent } from './issure/dashboard/dashboard.component';
+import { VerifyIndentityCode } from './forms/types/verify-identity-no.type';
+import { GraphDashboardComponent } from './graph-dashboard/graph-dashboard.component';
 import { AddCertificateComponent } from './issure/add-certificate/add-certificate.component';
-import { GetRecordsComponent } from './issure/get-records/get-records.component';
 import { AddRecordsComponent } from './issure/add-records/add-records.component';
+import { DashboardComponent } from './issure/dashboard/dashboard.component';
+import { GetRecordsComponent } from './issure/get-records/get-records.component';
 import { PreviewHtmlComponent } from './issure/preview-html/preview-html.component';
+import { initTheme } from './theme.config';
+// import { VerifyComponent } from './issure/verify/verify.component' 
+import { AdvanceEditorComponent } from './issure/advance-editor/advance-editor.component';
 // import { CreateCertificateComponent } from './create-certificate/create-certificate.component';
 import { NgJsonEditorModule } from 'ang-jsoneditor';
-import { VerifyComponent } from './issure/verify/verify.component'
-import { FormioModule } from 'angular-formio';
 import { NgxTextEditorModule } from 'ngx-text-editor';
+import { VerifyComponent } from './issure/verify/verify.component';
 
-import * as configData from '../assets/config/config.json';
-import { AdvanceEditorComponent } from './issure/advance-editor/advance-editor.component';
+import { AadhaarKycComponent } from './authentication/aadhaar-kyc/aadhaar-kyc.component';
+import { BulkIssueCredentialsComponent } from './bulk-issue-credentials/bulk-issue-credentials.component';
+import { UdiseLinkComponent } from './custom/udise-link/udise-link.component';
+import { formlyTypeConfig } from './formly.config';
+import { IssuedCredentialsComponent } from './issued-credentials/issued-credentials.component';
+import { BulkRecordsComponent } from './issure/bulk-records/bulk-records.component';
 import { MainDashboardComponent } from './main-dashboard/main-dashboard.component';
-import { GlobalHeaderComponent } from './global-header/global-header.component';
+import { MaskPipe } from './mask.pipe';
+import { OnboardingComponent } from './onboarding/onboarding.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
-import { RegisterEntityComponent } from './register-entity/register-entity.component';
-import { ClaimApprovalComponent } from './claim-approval/claim-approval.component';
-import { IssuedCredentialComponent } from './issued-credential/issued-credential.component';
-import { OauthCallbackComponent } from './oauth-callback/oauth-callback.component';
-import { RegistrationFormComponent } from './registration-form/registration-form.component';
-import { AuthInterceptor } from './authentication/auth.interceptor';
-import { MyAccountComponent } from './my-account/my-account.component';
-import { CommonModule } from '@angular/common';
+import { KeysPipe } from './utility/pipes/keys.pipe';
+import { DatepickerTypeComponent } from './forms/types/datepicker-type.component';
+import { SelectWrapper } from './forms/types/select-wrapper.type';
+import { configurationFactory } from './configuration.factory';
+import { TemplateTypeComponent } from './forms/types/template.type';
+import { VerifyUdiseComponent } from './forms/types/verify-udise/verify-udise.type';
+import { VerifyAadhaarComponent } from './forms/types/verify-aadhaar/verify-aadhaar.type';
 import { LandingPageComponent } from './landing-page/landing-page.component';
-import { EkycComponent } from './ekyc/ekyc.component';
-console.log(configData['default']);
+import { UdiseVerificationComponent } from './udise-verification/udise-verification.component';
+import { MyAccountComponent } from './my-account/my-account.component';
+import { RegisterComponent } from './register/register.component';
+import { ignoreCasePipe } from './utility/pipes/ignore-case.pipe';
+import { DataTableComponent } from './data-table/data-table.component';
+import { AuthInterceptor } from './authentication/auth.interceptor';
+import { AuthService } from './services/auth/auth.service';
+import { Router } from '@angular/router';
+import { UtilService } from './services/util/util.service';
+import { ToastMessageService } from './services/toast-message/toast-message.service';
+import { DeduplicationComponent } from './deduplication/deduplication.component';
+import { ApproveClaimsComponent } from './approve-claims/approve-claims.component';
+import { RevokeCredentialsComponent } from './revoke-credentials/revoke-credentials.component';
+import { AlertModalComponent } from './alert-modal/alert-modal.component';
+import { ReissueCredentialsComponent } from './reissue-credentials/reissue-credentials.component';
 
 @NgModule({
   declarations: [
@@ -168,8 +142,12 @@ console.log(configData['default']);
     LayoutsComponent,
     ModalRouterEditLinkDirective,
     ModalRouterAddLinkDirective,
-    PanelsComponent, EditPanelComponent, AddPanelComponent, TablesComponent,
+    PanelsComponent,
+    EditPanelComponent,
+    AddPanelComponent,
+    TablesComponent,
     AutocompleteTypeComponent,
+    VerifyIndentityCode,
     FormlyColorInput,
     HeaderComponent,
     AttestationComponent,
@@ -185,98 +163,68 @@ console.log(configData['default']);
     ScanDocumentComponent,
     ScanQrCodeComponent,
     BrowseDocumentsComponent,
-    DocTypesComponent,
-    SafeHtmlPipe,
     DashboardComponent,
     AddCertificateComponent,
     GetRecordsComponent,
     AddRecordsComponent,
+    GraphDashboardComponent,
     PreviewHtmlComponent,
     VerifyComponent,
     AdvanceEditorComponent,
-    MainDashboardComponent,
+    BulkRecordsComponent,
+    VerifyCertificateComponent,
+    MaskPipe,
+    OnboardingComponent,
+    UdiseLinkComponent,
     SidebarComponent,
-    GlobalHeaderComponent,
-    RegisterEntityComponent,
-    LoginComponent,
-    RegistrationComponent,
-    ClaimApprovalComponent,
-    IssuedCredentialComponent,
-    OauthCallbackComponent,
-    RegistrationFormComponent,
-    MyAccountComponent,
+    MainDashboardComponent,
+    IssuedCredentialsComponent,
+    BulkIssueCredentialsComponent,
+    KeysPipe,
+    ignoreCasePipe,
+    AadhaarKycComponent,
+    DatepickerTypeComponent,
+    SelectWrapper,
+    TemplateTypeComponent,
+    VerifyUdiseComponent,
+    VerifyAadhaarComponent,
     LandingPageComponent,
-    EkycComponent
-
+    UdiseVerificationComponent,
+    MyAccountComponent,
+    RegisterComponent,
+    DataTableComponent,
+    DeduplicationComponent,
+    ApproveClaimsComponent,
+    RevokeCredentialsComponent,
+    AlertModalComponent,
+    ReissueCredentialsComponent
   ],
   imports: [
     BrowserModule,
-    CommonModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
-    NgbModule,
+    NgbProgressbarModule,
     NgbAccordionModule,
-    FormlyBootstrapModule,
+    NgbPaginationModule,
+    BsDatepickerModule.forRoot(),
+    DatepickerModule.forRoot(),
     KeycloakAngularModule,
-    Bootstrap4FrameworkModule,
+    // Bootstrap4FrameworkModule,
     AngularMultiSelectModule,
     NgSelectModule,
-
+    VerifyModule.forChild(configData),
+    ZXingScannerModule,
     HttpClientModule,
-    TranslateModule.forRoot({
-      loader: { provide: TranslateLoader, useFactory: (createTranslateLoader), deps: [HttpClient] }
-    }),
+    TranslateModule.forRoot(),
 
-    WebcamModule,
+    // WebcamModule,
     ColorPickerModule,
     QuarModule,
     NgxExtendedPdfViewerModule,
-    FormlyModule.forRoot({
-      extras: { resetFieldOnHide: true },
-      wrappers: [{ name: 'form-field-horizontal', component: FormlyHorizontalWrapper },
-      { name: 'panel', component: PanelWrapperComponent }],
-      validationMessages: [
-        { name: 'required', message: '' },
-
-      ],
-      types: [
-        { name: 'string', extends: 'input' },
-        {
-          name: 'number',
-          extends: 'input',
-          defaultOptions: {
-            templateOptions: {
-              type: 'number',
-            },
-          },
-        },
-        {
-          name: 'integer',
-          extends: 'input',
-          defaultOptions: {
-            templateOptions: {
-              type: 'number',
-            },
-          },
-        },
-        { name: 'boolean', extends: 'checkbox' },
-        { name: 'enum', extends: 'select' },
-        { name: 'null', component: NullTypeComponent, wrappers: ['form-field'] },
-        { name: 'array', component: ArrayTypeComponent },
-        { name: 'object', component: ObjectTypeComponent },
-        { name: 'multischema', component: MultiSchemaTypeComponent },
-        {
-          name: 'autocomplete',
-          component: AutocompleteTypeComponent
-        },
-        { name: 'file', component: FormlyFieldFile, wrappers: ['form-field'] },
-        { name: 'multiselect', component: FormlyFieldNgSelect },
-        { name: 'color', component: FormlyColorInput },
-      ],
-    }),
+    FormlyModule.forRoot(formlyTypeConfig),
     ToastrModule.forRoot({
       positionClass: 'toast-bottom-full-width',
       preventDuplicates: true,
@@ -284,9 +232,9 @@ console.log(configData['default']);
     NgxPaginationModule,
     NgJsonEditorModule,
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
-    VerifyModule.forChild(configData['default']),
-    FormioModule,
-    NgxTextEditorModule
+    NgxTextEditorModule,
+    FormlyBootstrapModule,
+    NgbPopoverModule
   ],
   exports: [TranslateModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -294,60 +242,62 @@ console.log(configData['default']);
   bootstrap: [AppComponent],
   providers: [
     AppConfig,
-    { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfig], multi: true },
-    // {
-    //   provide: APP_INITIALIZER,
-    //   useFactory: initializeKeycloak,
-    //   multi: true,
-    //   deps: [KeycloakService, AuthConfigService],
-    // },
+    // { provide: APP_INITIALIZER, useFactory: initConfig, deps: [AppConfig], multi: true },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: configurationFactory,
+      multi: true,
+      // ConfigDeps is now a dependency for configurationFactory
+      deps: [AppConfig, ConfigDeps]
+    },
+    {
+      provide: ConfigDeps,
+      // Use a factory that return an array of dependant functions to be executed
+      useFactory: (
+        http: HttpClient,
+        config: AuthConfigService,
+        keycloackService: KeycloakService,
+        translateService: TranslateService
+      ) => {
+        // Easy to add or remove dependencies
+        return [
+          initializeKeycloak(keycloackService, config),
+          initLang(http, translateService, config)
+        ];
+      },
+      deps: [HttpClient, AuthConfigService, KeycloakService, TranslateService]
+    },
     // { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { floatLabel: 'always' } },
-    // {
-    //   provide: APP_INITIALIZER,
-    //   useFactory: initLang,
-    //   deps: [HttpClient, TranslateService],
-    //   multi: true
-    // },
     {
       provide: APP_INITIALIZER,
       useFactory: initTheme,
-      deps: [HttpClient, TranslateService],
+      deps: [AuthConfigService],
       multi: true
     },
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+    {
+      provide: FORMLY_CONFIG,
+      multi: true,
+      useFactory: (translateService: TranslateService) => {
+        return {
+          validationMessages: [
+            { name: 'required', message: (error: any, field: FormlyFieldConfig) => translateService.instant('PLEASE_ENTER', { value1: field.templateOptions.label }) },
+            { name: 'pattern', message: (error: any, field: FormlyFieldConfig) => translateService.instant('PLEASE_ENTER_VALID', { value1: field.templateOptions.label }) },
+
+          ]
+        };
+      },
+      deps: [TranslateService],
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      deps: [ToastMessageService, UtilService, Router],
+      multi: true
+    }
+
   ]
 })
 
-export class AppModule {
-  languages;
-  constructor(translate: TranslateService, authConfig: AuthConfigService) {
 
-    translate.setDefaultLang('en');
-    authConfig.getConfig().subscribe((config) => {
-      this.languages = config.languages;
-      var installed_languages = [];
-
-      for (let i = 0; i < this.languages.length; i++) {
-        installed_languages.push({
-          "code": this.languages[i],
-          "name": ISO6391.getNativeName(this.languages[i])
-        });
-      }
-
-      localStorage.setItem('languages', JSON.stringify(installed_languages));
-      translate.addLangs(this.languages);
-
-      if (localStorage.getItem('setLanguage') && this.languages.includes(localStorage.getItem('setLanguage'))) {
-        translate.use(localStorage.getItem('setLanguage'));
-
-      } else {
-        const browserLang = translate.getBrowserLang();
-        let lang = this.languages.includes(browserLang) ? browserLang : 'en';
-        translate.use(lang);
-        localStorage.setItem('setLanguage', lang);
-      }
-    });
-
-  }
-}
+export class AppModule { }
 

@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 @Component({
   selector: 'formly-autocomplete-type',
   template: `
+  <!-- <legend *ngIf="to.label">{{ to.label }}</legend>  -->
   <ng-select [items]="options$ | async"
   [bindLabel]="to.label"
   autofocus

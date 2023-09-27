@@ -1,16 +1,16 @@
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-header nav-b navbar-inverse pl-4">
-        <span  *ngIf="htmlDiv" (click)="back();">
+        <button class="gobackBtn" *ngIf="htmlDiv" (click)="back();">
             <i class="fa fa-angle-left primary-text"></i>
             <span class="heading-2 ml-2">Edit Template</span>
 
-        </span>
+        </button>
 
-        <span *ngIf="schemaDiv" (click)="backToHtmlEditor();">
+        <button class="gobackBtn" *ngIf="schemaDiv" (click)="backToHtmlEditor();">
             <i class="fa fa-angle-left primary-text"></i>
             <span  class="heading-2 ml-2">Advance Editor</span>
 
-        </span>
+        </button>
     </nav>
 
 
@@ -22,7 +22,7 @@
         <div class="row d-flex mt-4 setHeight">
             <div class="preview-footer">
                 <!-- <button class="btn btn-sec-bg submit-button mx-3">Preview on email</button> -->
-                <!-- <button (click)="cancel()" class="btn btn-sec-bg submit-button">Preview on eLocker</button> -->
+                <button (click)="cancel()" class="btn btn-sec-bg submit-button">Cancel</button>
                 <button data-toggle="modal" data-target="#prewiewProfile" class="btn text-capitalize float-end btn-primary btn-primary-sm p1">Save Document</button>
             </div>
             <div class=" p-0 setHeight border-right mtn-28">
@@ -34,7 +34,7 @@
                 </ul> -->
                 <div  id="htmlDiv" [hidden]="!htmlDiv">
                     
-                        <div class="d-flex justify-content-between py-1 px-4">
+                        <div class="d-flex flex-justify-between py-1 px-4">
                             <div class="heading-2">HTML</div>
                             <!-- <button class="fs-14 btn btn-sec-bg submit-button float-end">
                                     <i aria-hidden="true" class="fa fa-pencil-square-o"></i> Edit 
@@ -65,7 +65,7 @@
                 </div>
                
                     <div  id="schemaDiv"[hidden]="!schemaDiv">
-                        <div class="d-flex justify-content-between py-1 px-4">
+                        <div class="d-flex flex-justify-between py-1 px-4">
                             <div class="heading-2">JSON Schema</div>
                             <!-- <button class="fs-14 btn btn-sec-bg submit-button float-end">
                                     <i aria-hidden="true" class="fa fa-pencil-square-o"></i> Advance Editor 
