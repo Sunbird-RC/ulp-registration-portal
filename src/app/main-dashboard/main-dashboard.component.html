@@ -1,57 +1,104 @@
-<app-global-header></app-global-header>
+<app-header [headerFor]='headerName' [showTitle]="showTitle"></app-header>
+<div class="position-relative">
+  <i class="fa sidebar-icon cursor-pointer" [ngClass]="sidebarToggle ? 'fa-angle-left' : 'fa-angle-right'"
+    (click)="toggleSidebarMenu()" data-toggle="collapse" data-target="#collapseWidthExample" aria-expanded="false"
+    aria-controls="collapseWidthExample"></i>
+</div>
 <section>
-  <aside class="col-sm-2 pl-0">
-    <app-sidebar></app-sidebar>
-  </aside>
-  <main class="col-sm-10 p-0">
-    <p *ngIf="isFirstTimeLogin && currentUser?.name">{{'WELCOME_NOTE' | translate: {name: currentUser?.name} }}</p>
-    <div *ngIf="!isChildRoute" class="container">
-      <div class="d-flex gap-20 pb-55 pt-3  flex-wrap">
-        <!-- <div class="box">
-          <div class="fs-35 text-right">{{metrics?.students_registered}}</div>
-          <div class="fs-16 ">{{'REGISTERED_TOTAL_STUDENTS' | translate}}</div>
-        </div> -->
-        <div class="box">
-          <div class="fs-35">{{metrics?.credentials_issued}}</div>
-          <div class="fs-16">{{'ENROLMENT_CREDENTIAL' | translate}}</div>
-        </div>
-        <div class="box">
-          <div class="fs-35">{{metrics?.claims_approved}}</div>
-          <div class="fs-16">{{'APPROVED_CLAIMS' | translate}}</div>
-        </div>
-        <div class="box">
-          <div class="fs-35">{{metrics?.claims_pending}}</div>
-          <div class="fs-16">{{'PENDING_CLAIM_APPROVAL' | translate}}</div>
-        </div>
-        <div class="box">
-          <div class="fs-35">{{metrics?.claims_rejected}}</div>
-          <div class="fs-16">{{'REJECTED_CLAIMS' | translate}}</div>
+  <div class="text-float">
+    <aside class="collapse width show sidebar-collapse" id="collapseWidthExample">
+      <app-sidebar></app-sidebar>
+    </aside>
+  </div>
+
+  <main class="p-0 pl-2 bg-sch-img" [ngClass]="{'col-sm-9':sidebarToggle,'col-sm-11':!sidebarToggle}">
+    <p *ngIf="isFirstTimeLogin && authService?.currentUser?.name">{{'WELCOME_NOTE' | translate: {name: authService?.currentUser?.name} }}</p>
+    <div *ngIf="!isChildRoute" class="mt-6">
+      <div class="d-flex justify-content-end">
+        <div class="m-3 p-3 border rounded border-primary float-right school-box">
+          <p><span class="text-underline">{{'SCHOOL_NAME' | translate}}:</span>&nbsp;<b>{{authService?.currentUser?.school_name}}</b>
+          </p>
+          <p class="m-0"><span class="text-underline">{{'LOCATION' | translate}}:</span>&nbsp;<b>Noida</b></p>
         </div>
       </div>
-      <h1 class="heading1 py-3  text-center">{{'QUICK_LINKS' | translate}}</h1>
+      <div class="mt-4 metrics">
+        <h3 class="text-center fs-38 text-bl mb-4 font-weight-bold text-blue">{{title}}</h3>
+        <p class="text-center fs-24">{{'TRACK_ALL_MAJOR' | translate}}</p>
+        <div class="px-5 pb-3">
+          <div class="row pb-55 pt-3">
+            <div class="col-md-4 offset-md-2">
+              <div routerLink="/dashboard/issued-credential" class="box cursor-pointer">
+                <div class="fs-18 font-weight-bold text-center">
+                  <div class="fs-24">{{metrics?.students_registered}}</div>
+                  <div>{{'ENROLMENT_CREDENTIAL' | translate}}</div>
+                </div>
+                <!-- <div>
+                <i class="fa fa-arrow-alt-circle-right icon-siz"></i>
+              </div> -->
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div routerLink="/dashboard/claim-approval" [queryParams]="{filter: 'approved'}"
+                class="box cursor-pointer">
+                <div class="fs-18 font-weight-bold text-center">
+                  <div class="fs-24">{{metrics?.claims_approved}}</div>
+                  <div>{{'APPROVED_CLAIMS' | translate}}</div>
+                </div>
+                <!-- <div>
+                <i class="fa fa-arrow-alt-circle-right icon-siz"></i>
+              </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-5 mb-5">
+          <div class="row pb-55 pt-3">
+            <div class="col-md-4 offset-md-2">
+              <div routerLink="/dashboard/claim-approval" class="box cursor-pointer">
+                <div class="fs-18 font-weight-bold text-center">
+                  <div class="fs-24">{{metrics?.claims_pending}}</div>
+                  <div>{{'PENDING_CLAIM_APPROVAL' | translate}}</div>
+                </div>
+                <!-- <div>
+                <i class="fa fa-arrow-alt-circle-right icon-siz"></i>
+              </div> -->
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div routerLink="/dashboard/claim-approval" [queryParams]="{filter: 'rejected'}"
+                class="box cursor-pointer">
+                <div class="fs-18 font-weight-bold text-center">
+                  <div class="fs-24">{{metrics?.claims_rejected}}</div>
+                  <div>{{'REJECTED_CLAIMS' | translate}}</div>
+                </div>
+                <!-- <div>
+                <i class="fa fa-arrow-alt-circle-right icon-siz"></i>
+              </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <div class="d-flex gap-20 text-center">
-        <div class="vertical-card">
-          <div class="d-flex align-item-center" routerLink="register-entity">
-            <div>
+      <!-- <div class="fs-24 font-600 text-bl py-3 side-line text-center">{{'QUICK_LINKS' | translate}}</div>
+      <div class="d-flex mt-5 mb-5 justify-content-around">
+        <div class="vertical-card mb-4">
+          <div class="d-flex gap-20 align-items-center" routerLink="register-entity">
+            <div class="fs-18 cursor-pointer">
               {{'REGISTER_ISSUE_MANAGE_CERT' | translate }}
             </div>
-            <div>
-              <i class="fa fa-arrow-alt-circle-right fs-28"></i>
-            </div>
+            <i class="fa fa-arrow-alt-circle-right icon-siz ml-5px"></i>
           </div>
         </div>
-        <div class="vertical-card">
-          <div class="d-flex align-item-center" routerLink="claim-approval">
-            <div>
+        <div class="vertical-card mb-4">
+          <div class="d-flex gap-20 align-items-center" routerLink="claim-approval">
+            <div class="fs-18 cursor-pointer">
               {{'STUD_REGISTRATION_CLAIM' | translate }}
             </div>
-            <div>
-              <i class="fa fa-arrow-alt-circle-right fs-28"></i>
-            </div>
+            <i class="fa fa-arrow-alt-circle-right icon-siz ml-5px"></i>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
     <router-outlet></router-outlet>
   </main>

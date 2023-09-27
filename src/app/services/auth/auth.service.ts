@@ -9,6 +9,7 @@ import {
 import { Router } from '@angular/router';
 import { DataService } from '../data/data-request.service';
 import { UtilService } from '../util/util.service';
+import { AuthConfigService } from 'src/app/authentication/auth-config.service';
 @Injectable({
   providedIn: 'root',
 })
@@ -19,9 +20,11 @@ export class AuthService {
     private readonly http: HttpClient,
     private readonly router: Router,
     private readonly dataService: DataService,
-    private readonly utilService: UtilService
+    private readonly utilService: UtilService,
+    private readonly authConfigService: AuthConfigService
   ) {
-    this.baseUrl = environment.baseUrl;
+    // this.baseUrl = environment.baseUrl;
+    this.baseUrl = this.authConfigService.config.bffUrl;
   }
 
   // Sign-up
@@ -64,7 +67,7 @@ export class AuthService {
   }
 
   getToken() {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem('token');
   }
 
   set digilockerAccessToken(token: string) {
@@ -76,7 +79,7 @@ export class AuthService {
   }
 
   get isLoggedIn(): boolean {
-    let authToken = localStorage.getItem('accessToken');
+    let authToken = localStorage.getItem('token');
     return authToken !== null ? true : false;
   }
 
@@ -96,8 +99,15 @@ export class AuthService {
     return details;
   }
 
+  isKYCCompleted() {
+    if (this.currentUser?.kyc_aadhaar_token && this.currentUser?.school_id && this.currentUser?.school_name) {
+      return true;
+    }
+    return false;
+  }
+
   doLogout() {
-    if (this.digilockerAccessToken){
+    if (this.digilockerAccessToken) {
       const payload = {
         "digiacc": "ewallet",
         "access_token": this.digilockerAccessToken
@@ -107,12 +117,14 @@ export class AuthService {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('currentUser');
     localStorage.removeItem('digilockerAccessToken');
-    this.router.navigate(['']);
+    setTimeout(() => {
+      this.router.navigate(['']);
+    });
   }
 
   // User profile
   getUserProfile(id: any): Observable<any> {
-    let api = `${this.baseUrl}/v1/user-profile/${id}`;
+    const api = `${this.baseUrl}/v1/user-profile/${id}`;
     return this.http.get(api, { headers: this.headers }).pipe(
       map((res) => {
         return res || {};
@@ -161,8 +173,70 @@ export class AuthService {
     return this.http.post(api, { aadhaar_id: aadharId });
   }
 
+  getUDISEDetails(payload: any): Observable<any> {
+    // const api = `${this.baseUrl}/v1/school/verify`;
+    const api = "https://produlp.uniteframework.io/ulp-bff/v1/school/verify"; //TODO: Change the Host of the school verify API
+    return this.http.post(api, payload).pipe(map((res: any) => res?.response?.data));
+  }
+
+  linkUDISE(payload: any) {
+    const api = `${this.authConfigService.config.bffUrl}/v1/instructor/udise`;
+    return this.http.post(api, payload);
+  }
+
   verifyAccountAadharLink(payload: any) {
     const api = `${this.baseUrl}/v1/sso/digilocker/aadhaar`;
     return this.http.post(api, payload);
   }
+
+  aadhaarKYC(payload: any) {
+    const api = `${this.authConfigService.config.bffUrl}/v1/instructor/aadhaar`;
+    return this.http.post(api, payload);
+  }
+
+  verifyUDISEMobile(data) {
+    const url = `${this.authConfigService.config.bffUrl}/v1/school/mobile/verify`;
+    return this.http.post(url, data).pipe((res: any) => res.response);
+  }
+
+getStateList(): Observable < any > {
+  const api = `${this.baseUrl}/v1/school/stateList`;
+  return this.http.get(api, { headers: this.headers }).pipe(
+    map((res: any) => {
+      console.log("states res", res);
+      return res.response;
+    })
+  );
+}
+
+
+getDistrictList(payload: { stateCode: string }) {
+  const api = `${this.baseUrl}/v1/school/districtList`;
+  return this.http.post(api, payload, { headers: this.headers }).pipe(
+    map((res: any) => {
+      console.log("districts res", res);
+      return res.response;
+    })
+  );
+}
+
+getBlockList(payload: { districtCode: string }) {
+  const api = `${this.baseUrl}/v1/school/blockList`;
+  return this.http.post(api, payload, { headers: this.headers }).pipe(
+    map((res: any) => {
+      console.log("block res", res);
+      return res.response;
+    })
+  );
+}
+
+getSchoolList(payload: { "regionType": string, "regionCd": string, "sortBy": string }) {
+  const api = `${this.baseUrl}/v1/school/schoolList`;
+  return this.http.post(api, payload, { headers: this.headers }).pipe(
+    map((res: any) => {
+      console.log("schools res", res);
+      return res.response;
+    })
+  );
+}
 }

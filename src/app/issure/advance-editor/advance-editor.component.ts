@@ -260,7 +260,7 @@ export class AdvanceEditorComponent implements OnInit {
     // console.log( this.vcEditor.getText())
 
     this.jsonEditor['_data']['_osConfig']['credentialTemplate'] = this.vcFields;
-    this.newItemEvent.emit(this.jsonEditor);
+    this.newItemEvent.emit(this.jsonEditor['_data']);
   }
 
   formioJsonToPlainJSONSchema(event, components, jsonDefination) {
@@ -291,19 +291,30 @@ export class AdvanceEditorComponent implements OnInit {
           tempFjson[element.key] = this.arrayTypeFieldData(element);
         }
 
-      } if (element.type == 'select' ) {
-        tempFjson[element.key] = {
-          "type": "string",
-          "title": element.label,
-          "widget": {
-            "formlyConfig": {
-              "type": "enum",
-              "templateOptions": {
-                "options": element['data']['values']
-              }
-            }
-          }
+      } if (element.type == 'select') {
+        /* tempFjson[element.key] = {
+           "type": "string",
+           "title": element.label,
+           "widget": {
+             "formlyConfig": {
+               "type": "enum",
+               "templateOptions": {
+                 "options": element['data']['values']
+               }
+             }
+           }
+         }*/
+        let temp = [];
+        for (let i = 0; i < element['data']['values'].length; i++) {
+          temp.push(element['data']['values'][i].value)
         }
+        tempFjson[element.key] = {
+          "type": 'select',
+          "title": element.label,
+          "enum": temp
+        }
+
+
         console.log({ tempFjson });
       }
       if (element.type == 'checkbox') {
@@ -312,42 +323,43 @@ export class AdvanceEditorComponent implements OnInit {
           "title": element.label,
           "default": false
         }
-      }  if (element.type == 'selectboxes') {
-        tempFjson[element.key] = {  type: 'select',
-        templateOptions: {
-          label: element.label,
-          multiple: true,
-          options: element['values']
-        }
-      //   tempFjson[element.key] = {
-      //     "type": "array",
-      //   "title": element.label,
-      //   "uniqueItems": true,
-      //   "items": {
-      //     "type": "string",
-      //     "enum": element['values']
-      //   }
-      // }
-      } 
-    }if (element.type == 'radio') {
-      /*  tempFjson[element.key] = {
-          "type": "radio",
-          "title": element.label,
-          "templateOptions": {
-            "options": element['values']
+      } if (element.type == 'selectboxes') {
+        tempFjson[element.key] = {
+          type: 'select',
+          templateOptions: {
+            label: element.label,
+            multiple: true,
+            options: element['values']
           }
-        }*/
+          //   tempFjson[element.key] = {
+          //     "type": "array",
+          //   "title": element.label,
+          //   "uniqueItems": true,
+          //   "items": {
+          //     "type": "string",
+          //     "enum": element['values']
+          //   }
+          // }
+        }
+      } if (element.type == 'radio') {
+        /*  tempFjson[element.key] = {
+            "type": "radio",
+            "title": element.label,
+            "templateOptions": {
+              "options": element['values']
+            }
+          }*/
 
-        tempFjson[element.key] = { 
-           "enum":element['values'],
-           "title": element.label,
-        "widget": {
-          "formlyConfig": {
-            "type": "radio"
+        tempFjson[element.key] = {
+          "enum": element['values'],
+          "title": element.label,
+          "widget": {
+            "formlyConfig": {
+              "type": "radio"
+            }
           }
         }
       }
-    }
     });
 
     return tempFjson;

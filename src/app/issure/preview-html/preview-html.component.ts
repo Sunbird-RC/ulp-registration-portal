@@ -43,6 +43,7 @@ export class PreviewHtmlComponent implements OnInit {
   certificateProperties: any;
   certificateTitle: any;
   propertyArr: any = [];
+  sampleUserJson: any;
 
   constructor(public router: Router, public route: ActivatedRoute, public toastMsg: ToastMessageService,
     public generalService: GeneralService, public schemaService: SchemaService) {
@@ -187,7 +188,7 @@ export class PreviewHtmlComponent implements OnInit {
             const cardDiv = document.createElement('div');
             cardDiv.className = 'pcard p-3';
             cardDiv.setAttribute('style', 'text-align: left; color:white');
-            cardDiv.innerHTML = ` <div class="d-flex justify-content-between px-2 py-2">
+            cardDiv.innerHTML = ` <div class="d-flex flex-justify-between px-2 py-2">
             <div class="heading-2">Preview</div>
             <div>
                 <button id="advanceBtn" (click)="editTemplate()"
@@ -320,7 +321,7 @@ export class PreviewHtmlComponent implements OnInit {
 
   back() {
     history.back();    //this.router.navigate(['/certificate']);
-    this.editor.runCommand('core:canvas-clear')
+    this.editor.runCommand('core:canvas-clear');
   }
 
   backToHtmlEditor() {
@@ -331,6 +332,7 @@ export class PreviewHtmlComponent implements OnInit {
   cancel() {
     // this.isPreview = false;
     localStorage.setItem('sampleData', '');
+  this.editor.runCommand('core:canvas-clear');
     this.router.navigate(['/dashboard']);
   }
 
@@ -345,8 +347,9 @@ export class PreviewHtmlComponent implements OnInit {
         data = JSON.parse(data);
         this.certificateTitle = data['title'];
         this.userJson = data;
-        this.addCrtTemplateFields();
-        // this.certificateTemplate = this.userJson['_osConfig']['credentialTemplate'];
+      //  this.sampleUserJson = data;
+       // this.addCrtTemplateFields();
+         this.certificateTemplate = this.userJson['_osConfig']['credentialTemplate'];
         this.getCrtTempFields(this.userJson);
       });
 
@@ -479,9 +482,17 @@ export class PreviewHtmlComponent implements OnInit {
 
   async submit() {
    // this.addCrtTemplateFields();
-  
+  console.log(this.certificateTemplate);
     // this.schemaContent = this.jsonEditor.get();//JSON.stringify(this.userJson);
-    this.schemaContent = (this.schemaContent) ? this.schemaContent : this.userJson;
+
+    if(this.schemaContent)
+    {
+      this.schemaContent = this.schemaContent;
+    }else{
+      this.userJson['_osConfig']['credentialTemplate'] = this.certificateTemplate;
+      this.schemaContent =   this.userJson ;
+    }
+   // this.schemaContent = (this.schemaContent) ? this.schemaContent : this.sampleUserJson;
    // this.schemaContent = await this.addCrtTemplateFields();
 
     var htmlWithCss = this.editor.runCommand('gjs-get-inlined-html');
@@ -525,8 +536,10 @@ export class PreviewHtmlComponent implements OnInit {
       if (res.documentLocations[0]) {
         this.generalService.postData('/Schema', payload).subscribe((res) => {
           localStorage.setItem('content', '');
+          this.editor.runCommand('core:canvas-clear');
           this.router.navigate(['/dashboard']);
         }, (err) => {
+          
           console.log('err ----', err);
           this.toastMsg.error('error', err.error.params.errmsg)
 
@@ -559,7 +572,7 @@ export class PreviewHtmlComponent implements OnInit {
   }
 
   jsonSchemaData(jsonSchema) {
-    this.schemaContent = jsonSchema._data;
+    this.schemaContent = jsonSchema;
     this.getCrtTempFields(this.schemaContent);
     this.schemaDiv = false;
     this.htmlDiv = true;

@@ -1,18 +1,19 @@
 
-import { HttpClient } from '@angular/common/http';
+import { AuthConfigService } from './authentication/auth-config.service';
 
 export var THEMES: { default: any; dark: any; };
 
-export function initTheme(http: HttpClient) {
+export function initTheme(authConfig: AuthConfigService) {
 
   return () => {
-    http.get('./assets/config/config.json').subscribe((res) => {
+    authConfig.getConfig().subscribe((res) => {
       THEMES = {
         default: res['default_theme'],
         dark: res['dark_theme']
       }
     });
   }
+
 }
 
 /*export const THEMES = {

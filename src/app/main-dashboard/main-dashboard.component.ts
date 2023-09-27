@@ -1,39 +1,45 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
-import { AuthService } from '../services/auth/auth.service';
-import { DataService } from '../services/data/data-request.service';
-import { GeneralService } from '../services/general/general.service';
-import { ToastMessageService } from '../services/toast-message/toast-message.service';
-import { environment } from 'src/environments/environment';
-import { IImpressionEventInput, IInteractEventInput } from '../services/telemetry/telemetry-interface';
+import { IImpressionEventInput, IInteractEventInput } from '../services/telemetry/telemetry.interface';
 import { TelemetryService } from '../services/telemetry/telemetry.service';
+import { AuthConfigService } from '../authentication/auth-config.service';
+import { DataService } from '../services/data/data-request.service';
+import { filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { ToastMessageService } from '../services/toast-message/toast-message.service';
+import { GeneralService } from '../services/general/general.service';
+import { AuthService } from '../services/auth/auth.service';
+import { AppConfig } from '../app.config';
+
 
 @Component({
   selector: 'app-main-dashboard',
   templateUrl: './main-dashboard.component.html',
   styleUrls: ['./main-dashboard.component.scss']
 })
-export class MainDashboardComponent implements OnInit, OnDestroy {
-  baseUrl: string;
-
+export class MainDashboardComponent implements OnInit {
   isChildRoute = false;
   isFirstTimeLogin = false;
-  currentUser: any;
+  headerName: string = 'plain';
   metrics: any;
-  private unsubscribe$ = new Subject<void>();
-  constructor(
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
-    private readonly authService: AuthService,
-    private readonly dataService: DataService,
-    private readonly generalService: GeneralService,
-    private readonly toastMessageService: ToastMessageService,
-    private readonly telemetryService: TelemetryService,
-  ) {
-    this.baseUrl = environment.baseUrl;
+  sidebarToggle: boolean = true
+  showTitle: boolean = true;
+  title = this.config.getConfig('title');
 
+  private unsubscribe$ = new Subject<void>();
+
+  constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly telemetryService: TelemetryService,
+    private readonly dataService: DataService,
+    private readonly authConfigService: AuthConfigService,
+    private readonly toastMessageService: ToastMessageService,
+    private readonly generalService: GeneralService,
+    public readonly authService: AuthService,
+    private readonly config: AppConfig
+
+  ) {
     this.router.events.pipe(
       takeUntil(this.unsubscribe$),
       filter(e => e instanceof NavigationEnd))
@@ -41,7 +47,10 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
         this.isChildRoute = !!this.activatedRoute.children.length;
 
         if (!this.isChildRoute) {
+          this.showTitle = false;
           this.getMetrics();
+        } else {
+          this.showTitle = true;
         }
       });
 
@@ -50,20 +59,21 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.currentUser = this.authService.currentUser;
-    this.getMetrics();
+    // this.getMetrics();
+  }
+  toggleSidebarMenu() {
+    this.sidebarToggle = !this.sidebarToggle;
   }
 
   getMetrics() {
     const payload = {
-      url: `${this.baseUrl}/v1/portal/count`,
+      url: `${this.authConfigService.config.bffUrl}/v1/portal/count`,
       data: {
         "countFields": [
-          // "students_registered",
+          "students_registered",
           "claims_pending",
           "claims_approved",
-          "claims_rejected",
-          "credentials_issued"
+          "claims_rejected"
         ]
       }
     }
@@ -76,18 +86,10 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
         }
       }, error => {
         console.error(error);
-        this.toastMessageService.error('', this.generalService.translateString('SOMETHING_WENT_WRONG'));
+        // this.toastMessageService.error('', this.generalService.translateString('SOMETHING_WENT_WRONG'));
       });
   }
 
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
-  }
-
-  ngAfterViewInit(): void {
-    this.raiseImpressionEvent();
-  }
 
   raiseInteractEvent(id: string, type: string = 'CLICK', subtype?: string) {
     const telemetryInteract: IInteractEventInput = {
@@ -120,4 +122,5 @@ export class MainDashboardComponent implements OnInit, OnDestroy {
     };
     this.telemetryService.impression(telemetryImpression);
   }
+
 }

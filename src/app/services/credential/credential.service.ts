@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { forkJoin, from, Observable, of, throwError } from 'rxjs';
 import { concatMap, map, retry, switchMap, toArray } from 'rxjs/operators';
+import { AuthConfigService } from 'src/app/authentication/auth-config.service';
 import { AuthService } from '../auth/auth.service';
 import { DataService } from '../data/data-request.service';
-import { environment } from 'src/environments/environment';
 
 
 @Injectable({
@@ -15,9 +15,10 @@ export class CredentialService {
   private schemas: any[] = [];
   constructor(
     private readonly dataService: DataService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly authConfigService: AuthConfigService
   ) {
-    this.baseUrl = environment.baseUrl;
+    this.baseUrl = this.authConfigService.config.bffUrl;
 
   }
   findSchema(schemaId: string) {
@@ -28,32 +29,38 @@ export class CredentialService {
   }
 
   getCredentialSchemaId(credentialId: string): Observable<any> {
-    const payload = { url: `${this.baseUrl}/v1/sso/student/credentials/schema/${credentialId}` };
+    const payload = { url: `${this.baseUrl}/v1/credentials/schema/${credentialId}` };
     return this.dataService.get(payload).pipe(map((res: any) => res.result));
   }
 
-  getCredentials(endPoint: string = 'all', data?: any): Observable<any> {
+  getCredentialByCredentialId(credentialId: string): Observable<any> {
+    const payload = { url: `${this.baseUrl}/v1/credentials/json/${credentialId}` };
+    return this.dataService.get(payload).pipe(map((res: any) => res.result));
+  }
+
+  getCredentials(issuerId?: string, schemaName?: string): Observable<any> {
     const payload: any = {
-      url: `${this.baseUrl}/v1/sso/student/credentials/search/${endPoint}`,
+      url: `${this.baseUrl}/v1/credentials/search`,
       data: {}
     };
 
-    if (data?.issuerId) {
+    if (issuerId) {
       payload.data = {
-        issuer: { id: data.issuerId },
+        issuer: { id: issuerId },
         subject: {}
-      }
-
-      if (data?.grade) {
-        payload.data.subject.grade = data.grade
-      }
-      if (data?.academicYear) {
-        payload.data.subject.academic_year = data.academicYear;
       }
     } else {
       payload.data = {
-        subject: { id: this.authService.currentUser.did }
+        subject: { id: this.authService.currentUser?.did }
       }
+    }
+
+    if (schemaName === 'Enrollment Credentials') {
+      payload.data.subject.orgId = this.authService.currentUser.school_id;
+    } else if (schemaName === 'Assessment Credentials') {
+      payload.data.subject.school_udise = this.authService.currentUser.school_id;
+    } else if (schemaName === 'Benefits Credentials') {
+      payload.data.subject.schemeId = this.authService.currentUser.school_id;
     }
 
     return this.dataService.post(payload).pipe(map((res: any) => res.result));
@@ -65,7 +72,7 @@ export class CredentialService {
       return of(schema);
     }
 
-    const payload = { url: `${this.baseUrl}/v1/sso/student/credentials/schema/json/${schemaId}` };
+    const payload = { url: `${this.baseUrl}/v1/credentials/schema/json/${schemaId}` };
     return this.dataService.get(payload).pipe(map((res: any) => {
       this.schemas.push(res.result);
       return res.result;
@@ -74,23 +81,44 @@ export class CredentialService {
 
   // One after one
   getAllCredentials(endPoint: string = 'all', issuer?: string): Observable<any> {
-    return this.getCredentials(endPoint, issuer).pipe(
+    return this.getCredentials(issuer).pipe(
       switchMap((credentials: any) => {
-        return from(credentials).pipe(
-          concatMap((cred: any) => {
-            return this.getCredentialSchemaId(cred.id).pipe(
-              concatMap((res: any) => {
-                cred.schemaId = res.credential_schema;
-                return this.getSchema(res.credential_schema).pipe(
-                  map((schema: any) => {
-                    cred.credential_schema = schema;
-                    return cred;
-                  })
-                );
+        if (credentials.length) {
+          return forkJoin(
+            credentials.map((cred: any) => {
+              return this.getCredentialSchemaId(cred.id).pipe(
+                concatMap((res: any) => {
+                  cred.schemaId = res.credential_schema;
+                  return of(cred);
+                })
+              );
+            })
+          );
+        }
+        return of([]);
+      }), switchMap((res: any) => {
+        console.log("res", res);
+        const schemaIds = [...new Set(res.map((item: any) => item.schemaId))];
+        return from(schemaIds).pipe(
+          switchMap((schemaId: any) => {
+            return this.getSchema(schemaId);
+          }), switchMap((schema: any) => {
+            return of(res);
+          })
+        );
+      }),
+      switchMap((creds: any) => {
+        if (creds.length) {
+          return forkJoin(creds.map((cred: any) => {
+            return this.getSchema(cred.schemaId).pipe(
+              map((schema: any) => {
+                cred.credential_schema = { ...schema };
+                return cred;
               })
             );
-          }), toArray()
-        )
+          }))
+        }
+        return of([]);
       })
     );
   }
@@ -125,7 +153,7 @@ export class CredentialService {
     const nextYearDate = new Date();
     nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
     const payload = {
-      url: `${this.baseUrl}/v1/sso/student/credentials/issue`, //TODO: Need to change this to /teacher
+      url: `${this.baseUrl}/v1/credentials/issue`, //TODO: Need to change this to /teacher
       data: {
         "credential": {
           "@context": [
@@ -141,7 +169,7 @@ export class CredentialService {
           "issuanceDate": new Date().toISOString(),
           "expirationDate": nextYearDate.toISOString(),
           "credentialSubject": {
-            "id": this.authService.currentUser.did,
+            "id": this.authService.currentUser?.did,
             "principalName": this.authService.currentUser.name,
             "schoolName": this.authService.schoolDetails?.schoolName,
             "schoolUdiseId": this.authService.currentUser?.schoolUdise,
@@ -180,6 +208,23 @@ export class CredentialService {
     const payload = {
       url: `${this.baseUrl}/v1/sso/student/aadhaar/verify`,
       data
+    }
+    return this.dataService.post(payload).pipe(retry(2));
+  }
+
+  revokeCredentials(credentialId: string) {
+    const payload = {
+      url: `${this.baseUrl}/v1/credentials/revoke/${credentialId}`
+    }
+    return this.dataService.delete(payload);
+  }
+
+  reissueCredential(credentialSubject: any, credentialId: string) {
+    const payload = {
+      url: `${this.baseUrl}/v1/credentials/reissue/${credentialId}`,
+      data: {
+        credentialSubject
+      }
     }
     return this.dataService.post(payload);
   }

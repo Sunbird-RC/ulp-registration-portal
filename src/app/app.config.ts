@@ -1,21 +1,22 @@
-import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { catchError } from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { Router } from '@angular/router';
+import { AuthConfigService } from './authentication/auth-config.service';
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 export class AppConfig {
 
     private config: Object = null;
     private environment: Object = null;
 
     constructor(
+        private readonly authConfig: AuthConfigService,
         private readonly http: HttpClient,
-        private readonly router: Router,
-        private readonly titleService: Title
+        private readonly titleService: Title,
+        public readonly router: Router,
     ) { }
 
     /**
@@ -44,7 +45,7 @@ export class AppConfig {
      */
     public load() {
         return new Promise((resolve, reject) => {
-            this.http.get('/assets/config/config.json').subscribe((envResponse) => {
+            this.authConfig.getConfig().subscribe((envResponse) => {
                 this.environment = envResponse;
                 let request: any = null;
 
@@ -59,9 +60,10 @@ export class AppConfig {
                         request = this.http.get('/assets/config/config.json');
                     } break;
 
-                    case 'install': {
+                    case 'default': {
                         console.error('environment is not set or invalid in config.json file');
                         // this.router.navigate(['install'])
+
                         resolve(true);
                     } break;
                 }
@@ -69,28 +71,27 @@ export class AppConfig {
                 if (request) {
                     request
                         .subscribe((responseData) => {
+                            console.log("responseData", responseData);
                             this.config = responseData;
                             this.titleService.setTitle(responseData.title);
                             resolve(true);
                         }, err => {
-                            console.log('Error reading config.json configuration file . Please find Sample ->> https://sunbird-certificate-demo.xiv.in/assets/config/config.json', err);
-                            // this.titleService.setTitle("Sunbird RC");
+                            console.log('Error reading config.json configuration file', err);
+                            this.titleService.setTitle("Sunbird RC");
                             // this.router.navigate(['install'])
                         });
                 } else {
-                    console.error('config.json file is not valid . Please find Sample ->> https://sunbird-certificate-demo.xiv.in/assets/config/config.json');
-                    // this.titleService.setTitle("Sunbird RC");
+                    console.error('config.json file is not valid');
+                    this.titleService.setTitle("Sunbird RC");
                     // this.router.navigate(['install'])
                     resolve(true);
                 }
-            },
-
-                err => {
-                    console.log('Error reading config.json configuration file. Please find Sample ->> https://sunbird-certificate-demo.xiv.in/assets/config/config.json', err);
-                    // this.titleService.setTitle("Sunbird RC");
-                    // this.router.navigate(['install'])
-                    resolve(true);
-                }
+            }, err => {
+                console.log('Error reading config.json configuration file', err);
+                this.titleService.setTitle("Sunbird RC");
+                // this.router.navigate(['install'])
+                resolve(true);
+            }
             );
 
         });

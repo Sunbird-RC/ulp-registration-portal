@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -9,19 +9,25 @@ import { GeneralService } from 'src/app/services/general/general.service';
 import { CredentialService } from 'src/app/services/credential/credential.service';
 import { ToastMessageService } from 'src/app/services/toast-message/toast-message.service';
 import { TelemetryService } from 'src/app/services/telemetry/telemetry.service';
-import { IImpressionEventInput, IInteractEventInput } from 'src/app/services/telemetry/telemetry-interface';
-import { environment } from 'src/environments/environment';
+import { IImpressionEventInput, IInteractEventInput } from 'src/app/services/telemetry/telemetry.interface';
+import { AuthConfigService } from 'src/app/authentication/auth-config.service';
+import { DomSanitizer } from '@angular/platform-browser';
+// import { jsPDF } from 'jspdf';
+// import html2canvas from 'html2canvas';
+import { UtilService } from 'src/app/services/util/util.service';
+
+const RENDER_CREDENTIAL_FORMAT: string = 'PDF'; //or PDF HTML
 
 @Component({
     selector: 'app-doc-view',
     templateUrl: './doc-view.component.html',
-    styleUrls: ['./doc-view.component.scss']
+    styleUrls: ['./doc-view.component.scss'],
+    encapsulation: ViewEncapsulation.None,
 })
 export class DocViewComponent implements OnInit, OnDestroy {
     baseUrl: string;
-
     docUrl: string;
-    extension;
+    extension: string;
     document = [];
     isLoading: boolean = true;
     docName: any;
@@ -33,7 +39,9 @@ export class DocViewComponent implements OnInit, OnDestroy {
     public unsubscribe$ = new Subject<void>();
     private readonly canGoBack: boolean;
     blob: Blob;
-    // canShareFile = !!navigator.share;
+    canShareFile = !!navigator.share;
+    credentialHTML: any;
+
     constructor(
         public readonly generalService: GeneralService,
         private readonly router: Router,
@@ -43,10 +51,12 @@ export class DocViewComponent implements OnInit, OnDestroy {
         private readonly toastMessage: ToastMessageService,
         private readonly activatedRoute: ActivatedRoute,
         private readonly telemetryService: TelemetryService,
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        private readonly authConfigService: AuthConfigService,
+        private readonly sanitizer: DomSanitizer,
+        private readonly utilService: UtilService
     ) {
-        this.baseUrl = environment.baseUrl;
-
+        this.baseUrl = authConfigService.config.bffUrl;
         const navigation = this.router.getCurrentNavigation();
         this.credential = navigation.extras.state;
         this.canGoBack = !!(this.router.getCurrentNavigation()?.previousNavigation);
@@ -68,13 +78,13 @@ export class DocViewComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.isLoading = true;
         if (this.credential) {
-            this.loadPDF();
+            this.loadCredential();
         } else {
             this.isMyAccountPage = true;
             this.credentialService.getAllCredentials('teacher').pipe(takeUntil(this.unsubscribe$))
                 .subscribe((res) => {
                     this.credential = res[0];
-                    this.loadPDF();
+                    this.loadCredential();
                 }, (error: any) => {
                     console.error(error);
                     this.toastMessage.error("", this.generalService.translateString('SOMETHING_WENT_WRONG'));
@@ -86,22 +96,38 @@ export class DocViewComponent implements OnInit, OnDestroy {
                         ).subscribe((result: any) => {
                             this.isLoading = false;
                             this.credential = result[0];
-                            this.loadPDF();
+                            this.loadCredential();
                         }, error => {
                             this.isLoading = false;
                         });
+                    } else {
+                        this.isLoading = false;
                     }
                 });
         }
     }
 
-    loadPDF() {
+    loadCredential() {
         if (this.credential?.credential_schema) {
-            this.schemaId = this.credential.schemaId;
+            this.schemaId = this.credential.credentialSchemaId;
             this.getTemplate(this.schemaId).pipe(takeUntil(this.unsubscribe$))
                 .subscribe((res) => {
-                    this.templateId = res?.id;
-                    this.getPDF(res?.template);
+                    this.templateId = res?.templateId;
+                    const credential_schema = this.credential.credential_schema;
+                    // delete this.credential.credential_schema;
+                    // delete this.credential.schemaId;
+                    const request = {
+                        credentialid: this.credential.id,
+                        // schema: credential_schema,
+                        templateid: this.templateId,
+                        // output: "HTML"
+                    }
+
+                    if (RENDER_CREDENTIAL_FORMAT === 'HTML') {
+                        this.getCredentialHTML(request);
+                    } else {
+                        this.getCredentialPDF(request);
+                    }
                 }, (error: any) => {
                     this.isLoading = false;
                     console.error("Something went wrong while fetching template!", error);
@@ -114,12 +140,8 @@ export class DocViewComponent implements OnInit, OnDestroy {
         }
     }
 
-    getSchema(id): Observable<any> {
-        return this.generalService.getData(`https://ulp.uniteframework.io/cred-schema/schema/jsonld?id=${id}`, true);
-    }
-
     getTemplate(id: string): Observable<any> {
-        return this.generalService.getData(`${this.baseUrl}/v1/sso/student/credentials/rendertemplateschema/${id}`, true).pipe(
+        return this.generalService.postData(`${this.baseUrl}/v1/credential/schema/template/list`, { schema_id: id }, true).pipe(
             map((res: any) => {
                 if (res.result.length > 1) {
                     const selectedLangKey = localStorage.getItem('setLanguage');
@@ -148,32 +170,31 @@ export class DocViewComponent implements OnInit, OnDestroy {
         )
     }
 
-    getPDF(template) {
+    getCredentialHTML(request: any) {
+        this.http.post(`${this.baseUrl}/v1/credentials/renderhtml`, request).pipe(takeUntil(this.unsubscribe$))
+            .subscribe((response: any) => {
+                this.credentialHTML = this.sanitizer.bypassSecurityTrustHtml(response.result);
+                console.log("response", response);
+                this.extension = 'html';
+                this.isLoading = false;
+            });
+    }
+
+    getCredentialPDF(request: any) {
         let headerOptions = new HttpHeaders({
             'Accept': 'application/pdf'
         });
         let requestOptions = { headers: headerOptions, responseType: 'blob' as 'json' };
-        const credential_schema = this.credential.credential_schema;
-        delete this.credential.credential_schema;
-        delete this.credential.schemaId;
-        const request = {
-            credential: this.credential,
-            schema: credential_schema,
-            template: template,
-            output: "HTML"
-        }
-        // delete request.credential.credentialSubject;
-        this.http.post(`${this.baseUrl}/v1/sso/student/credentials/render`, request, requestOptions).pipe(map((data: any) => {
+        this.http.post(`${this.baseUrl}/v1/credentials/render`, request, requestOptions).pipe(map((data: any) => {
             this.blob = new Blob([data], {
                 type: 'application/pdf' // must match the Accept type
             });
             this.docUrl = window.URL.createObjectURL(this.blob);
-
+            console.log("data", data);
+        }), takeUntil(this.unsubscribe$)).subscribe((result: any) => {
             setTimeout(() => {
                 this.isLoading = false;
             }, 100);
-        }), takeUntil(this.unsubscribe$)).subscribe((result: any) => {
-            this.isLoading = false;
             this.extension = 'pdf';
         });
     }
@@ -182,17 +203,20 @@ export class DocViewComponent implements OnInit, OnDestroy {
         window.history.go(-1);
     }
 
-    downloadCertificate(url) {
-        let link = document.createElement("a");
-        link.href = url;
-        link.download = `${this.authService.currentUser?.name}_certificate.pdf`.replace(/\s+/g, '_');;
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    downloadCertificate() {
+        if (this.extension === 'pdf') {
+            this.utilService.downloadFileWithBlob(`${this.authService.currentUser?.name}_certificate.pdf`, this.blob);
+        } else if (this.extension === 'html') {
+            const content = document.getElementById('content-to-download');
+            this.utilService.downloadPdfWithContent(content, `${this.authService.currentUser?.name}_certificate.pdf`);
+        }
     }
 
     shareFile() {
+        if (this.extension === 'html') {
+            const content = document.getElementById('content-to-download');
+            this.blob = new Blob([content.innerHTML], { type: 'application/pdf' });
+        }
         const pdf = new File([this.blob], "certificate.pdf", { type: "application/pdf" });
         const shareData = {
             title: `${this.authService.currentUser?.name}_certificate`.replace(/\s+/g, '_'),
@@ -209,6 +233,25 @@ export class DocViewComponent implements OnInit, OnDestroy {
         } else {
             console.log("Share not supported");
         }
+    }
+
+
+    downloadCredential() {
+        // const content = document.getElementById('content-to-download');
+        // if (!content) {
+        //     console.error('Element not found!');
+        //     return;
+        // }
+        // html2canvas(content).then((canvas) => {
+        //     const pdf = new jsPDF('p', 'mm', 'a4');
+        //     const imgData = canvas.toDataURL('image/png');
+        //     const imgProps = pdf.getImageProperties(imgData);
+        //     const pdfWidth = pdf.internal.pageSize.getWidth();
+        //     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        //     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        //     pdf.save('content.pdf');
+        // });
     }
 
     ngOnDestroy(): void {

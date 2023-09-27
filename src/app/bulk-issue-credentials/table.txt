@@ -1,0 +1,95 @@
+  <ngx-datatable *ngIf="csvObject?.length"
+  [rows]="rows"
+  [columns]="tableColumns"
+  [scrollbarH]="true" 
+  [footerHeight]="100" 
+  [selected]="selected"
+  [selectionType]="'checkbox'"
+  [selectAllRowsOnPage]="false"
+  [limit]="5" 
+  [virtualization]="false"
+  [externalPaging]="true"
+  [count]="page.totalElements"
+  [offset]="page.pageNumber"
+  [limit]="page.size"
+  (page)="setPage($event)"
+  (select)="onSelect($event)">
+    <ngx-datatable-footer *ngIf="true">
+      <ng-template ngx-datatable-footer-template
+      let-rowCount="rowCount"
+      let-pageSize="pageSize"
+      let-selectedCount="selectedCount"
+      let-curPage="curPage"
+      let-offset="offset"
+      >
+        <div style="padding: 5px 10px">
+          <div>Rows: {{ rowCount }}</div>
+        </div>
+      </ng-template>
+      <ng-template 
+    ngx-datatable-footer-template
+    let-rowCount="rowCount"
+    let-pageSize="pageSize"
+    let-selectedCount="selectedCount"
+    let-curPage="curPage"
+    let-offset="offset"
+    let-isVisible="isVisible">
+      <div class="page-count">
+        <span *ngIf="selectedMessage">
+          {{selectedCount.toLocaleString()}} {{selectedMessage}} / 
+        </span>
+        {{rowCount.toLocaleString()}} {{totalMessage}}
+      </div>
+      <datatable-pager
+          [pagerLeftArrowIcon]="'datatable-icon-left'"
+          [pagerRightArrowIcon]="'datatable-icon-right'"
+          [pagerPreviousIcon]="'datatable-icon-prev'"
+          [pagerNextIcon]="'datatable-icon-skip'"
+          [page]="curPage"
+          [size]="pageSize"
+          [count]="rowCount"
+          [hidden]="!((rowCount / pageSize) > 1)"
+          (change)="table.onFooterPage($event)">
+      </datatable-pager>
+  </ng-template>
+    </ngx-datatable-footer>
+  </ngx-datatable>
+
+
+  selected = [];
+  page = new Page();
+  rows: any[];
+
+
+  constructor () {
+    this.page.pageNumber = 0;
+    this.page.size = 10;
+  }
+
+  this.setPage({ offset: 0 });
+
+
+  onSelect({ selected }) {
+    console.log('Select Event', selected, this.selected);
+
+    this.selected.splice(0, this.selected.length);
+    this.selected.push(...selected);
+  }
+
+  /**
+   * Populate the table with new data based on the page number
+   * @param page The page to select
+   */
+  setPage(pageInfo) {
+    let pagedData = [];
+    this.page.pageNumber = pageInfo.offset;
+    this.page.totalElements = this.csvObject.length;
+    this.page.totalPages = this.page.totalElements / this.page.size;
+    const start = this.page.pageNumber * this.page.size;
+    const end = Math.min(start + this.page.size, this.page.totalElements);
+    for (let i = start; i < end; i++) {
+      const jsonObj = this.csvObject[i];
+      pagedData.push(jsonObj);
+    }
+    this.rows = pagedData;
+  }

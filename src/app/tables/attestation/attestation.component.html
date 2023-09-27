@@ -6,12 +6,15 @@
                 <i class="fas fa-bars"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarExample01">
+                <div class="nav-item active logo-text" style="width: auto;">
+                    <a role="link" aria-disabled="true"><img class="logo" src={{logo}} /></a>
+                </div>
                 <div class="nav-item active logo-text">
-                    <a class="nav-link" aria-current="page" style="color: black;">{{'ATTEST_DETAILS' | translate}}</a>
+                    <a class="nav-link p14 active" aria-current="page">{{'ATTEST_DETAILS' | translate}}</a>
                 </div>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <button type="button" (click)="close()" class="close float-right"><span _ngcontent-fni-c481=""
+                        <button type="button" (click)="close()" class="close float-right primary-text"><span _ngcontent-fni-c481=""
                                 aria-hidden="true">×</span></button>
                     </li>
                 </ul>
@@ -26,8 +29,8 @@
     <div class="col">
         <p class="p14 font-weight-bold">{{'REVIEW_AND_ATTEST_CLAIM' | translate}}</p>
 
-        <div class="">
-        </div>
+        <!-- <div class="">
+        </div> -->
         <!-- <button style="margin: 8px;" class="btn btn-primary text-end pr-20 fw-bold text-capitalize"
                         (click)="onAttestApproveReject()"><i class="fa fa-check-circle text-success"
                                 data-mdb-toggle="tooltip" title="Attested"></i>Approve</button>
@@ -75,16 +78,37 @@
                                 </div>
                                 <ng-template #noFile>
                                     <div class="lh-lg"> <span class="p14 text-grey-color"> {{item?.title}}: </span>
-                                        <span class="p14 text-dark"> {{item?.value}}
+                                        <!-- <span class="p14 primary-text"> {{item?.value}}
+                                        </span> -->
+
+                                        <span class="p14 primary-text" *ngIf="typeOf(item?.value) != 'object'"> {{item?.value}}
+                                        </span>
+
+                                        <span class="p14 primary-text" *ngIf="typeOf(item?.value) === 'object'"> 
+                                            <span *ngFor="let subField of item?.value; let i = index">  <br/>
+                                                <span *ngIf="item?.value[i]?.grades">
+                                                     Grades : {{item?.value[i]?.grades}} ,  
+                                                </span>
+                                                <span *ngIf="item?.value[i]?.subjects">
+                                                    Subjects : {{item?.value[i]?.subjects}}
+                                                </span>
+                                                <span *ngIf="subField[i]">
+                                                     {{subField}}
+                                                </span>
+                                        </span>
                                         </span>
                                     </div>
                                 </ng-template>
                             </div>
                             <div *ngIf="documents != null" class="mb-3">
                                 <ng-template ngFor let-document [ngForOf]="documents" let-i="index">
-                                    <a href="/document/view?u={{document.fileName}}"
+                                    <a (click)="getPathUrl(document?.fileName)"
+                                    class="badge badge-pill badge-primary mr-1"><i
+                                        class="fa fa-paperclip" aria-hidden="true"></i>{{'DOCUMENT' | translate}} {{i + 1}}</a>
+                  
+                                    <!-- <a href="/documents/view/{{document.fileName}}"
                                         class="badge badge-pill badge-primary mr-1" target="_blank"><i
-                                            class="fa fa-paperclip" aria-hidden="true"></i>{{'DOCUMENT' | translate}} {{i + 1}}</a>
+                                            class="fa fa-paperclip" aria-hidden="true"></i>{{'DOCUMENT' | translate}} {{i + 1}}</a> -->
                                 </ng-template>
                             </div>
                         </dd>
@@ -106,6 +130,7 @@
                         <div class="p-4">
 
                             <ng-template [ngIf]="noteAdded">
+                               
                                 <div class="text-success p14"><i class="fa fa-check"></i> {{'NOTE_ADDED' | translate}}
                                 </div>
                             </ng-template>
@@ -113,15 +138,16 @@
                                 <formly-form [model]="model" [fields]="noteFields" [options]="options"
                                     [form]="noteForm">
                                 </formly-form>
-                                <button type="button" [disabled]="!noteForm.valid"
+                           
+                                <button type="button" [disabled]="!noteForm.value.note"
                                     class="btn btn-primary text-capitalize font-weight-bold submit-button"
-                                    (click)="saveNote($event)">{{'SAVE_NOTE' | translate}}</button>
+                                    (click)="saveNote()">{{'SAVE_NOTE' | translate}}</button>
                             </form>
 
-                            <div class="pt-4 mb-1" *ngFor="let noteData of notes">
-                                <ng-template [ngIf]="noteData.notes != ''">
-                                    <h6 class="mb-1 p14 text-dark">{{noteData.notes}}</h6>
-                                    <span class="fs-7 text-grey-color">
+                            <div class="mt-3">
+                                <ng-template class="pt-4 mb-1"  *ngFor="let noteData of notes" [ngIf]="noteData.notes != ''">
+                                    <h6 class="mb-1 p14 primary-text lh-1"> <b>{{noteData.notes}}</b></h6>
+                                    <span class="fs-7 text-grey-color lh-1">
                                         <span *ngIf="noteData.addedBy"> {{'BY' | translate}} {{noteData.addedBy}}, </span>
                                         <span *ngIf="noteData.createdAt"> {{noteData.createdAt | date : 'd MMM y'}}
                                         </span>
@@ -143,8 +169,9 @@
         <!-- </div> -->
         <!-- <h5>Public Profile of {{claimData?.requestorName}}</h5> -->
         <p class="p14 font-weight-bold">{{'PUBLIC_PROFILE_OF' | translate}} {{claimData?.requestorName}}</p>
+    <div>
         <div class="card">
-            <div class="card-body mb30">
+            <div class="card-body">
                 <ng-template [ngIf]="profile">
                     <app-layouts layout={{claimEntity}} identifier={{claimEntityId}} public={{profile}}></app-layouts>
                 </ng-template>
@@ -187,7 +214,7 @@
                                         [form]="denyForm">
                                     </formly-form>
                                     <button type="button" class="btn large btn-style btn-bg submit-button">
-                                        <span aria-hidden="true" ata-dismiss="modal" aria-label="Close"
+                                        <span aria-hidden="true" data-dismiss="modal" aria-label="Close"
                                             class="label-primary font-weight-bold text-capitalize">{{'CANCEL' | translate}}</span></button>
 
                                     <button type="button" [disabled]="!denyForm.valid"
@@ -203,6 +230,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 </div>

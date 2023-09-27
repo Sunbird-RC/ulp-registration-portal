@@ -1,8 +1,8 @@
 <app-header [headerFor]='headerName'></app-header>
 
-<div class="card mt-5">
-    <div class="card-body ml-5 d-flex justify-content-between">
-        <div class="d-flex justify-content-between">
+<!-- <div class="card mt-5 mt-100">
+    <div class="card-body ml-5 d-flex flex-justify-between">
+        <div class="d-flex flex-justify-between">
             <div>
                 <img *ngIf="issuerInfo?.logoUrl" src="{{issuerInfo?.logoUrl}}" class="logo" alt='logo Url' />
             </div>
@@ -21,19 +21,19 @@
             </button>
         </div>
     </div>
-</div>
+</div> -->
 
 
-<div class="container">
-    <div class="row">
-        <div class="mt-4 mb-3 px-0">
-            <span class="heading-2">Documents</span>
+<div class="container-fluid mt-100">
+    <div class="row  ml-2">
+        <div class="mt-4 mb-3">
+            <span class="heading-2 fw-bold">Verifiable Credentials</span>
             <!-- <a class=" p-2 p14 btn-bg label-primary btn-style float-end" href="/add-doc-types"> Add Document type</a> -->
             <!-- <button type="button" class="btn p14 btn-bg text-capitalize float-end btn-sm label-primary btn-primary"
                 data-toggle="modal" data-target="#prewiewProfile">Add New Document</button> -->
-            <a routerLink="/certificate" class=""> <button type="button"
+            <!-- <a routerLink="/certificate" class=""> <button type="button"
                     class="btn text-capitalize float-end btn-primary btn-primary-sm p2">Add New
-                    Document</button></a>
+                    Document</button></a> -->
         </div>
         <div class="card" *ngIf="!templatesItems">
             <div class="p16 card-body">
@@ -46,11 +46,17 @@
         <div *ngIf="templatesItems">
             <div class="d-flex flex-row flex-wrap p-0">
                 <div *ngFor="let item of templatesItems" class="card card-block mr-2 mb-2 p-4  col-sm-3">
-                    <p class="p16 mb-1 font-600">{{item?.name}}</p>
-                    <h2 class="font-600">0</h2>
-                    <p class="p12 mb-1">Record</p>
-                    <a routerLink="/records/{{item?.name}}"
-                        class="my-2 fs-14 btn btn-sec-bg submit-button align-self-start">View / Add</a>
+                    <p class="p16 mb-2 font-600">{{item?.name}}</p>
+                    <div *ngFor="let myItem of recordCount | keyvalue">
+                       
+                      <div *ngIf="myItem.key === item?.name.toLowerCase()"> 
+                        <h2 class="font-600">{{myItem.value}}</h2>
+                        </div> 
+                    </div>
+                  
+                    <!-- <p class="p12 mb-1">Record</p> -->
+                    <a routerLink="/records/{{item?.name}}/{{item?.osid}}"
+                        class="my-2 fs-14 btn btn-sec-bg submit-button align-self-start nav-link-color">View / Add</a>
                 </div>
             </div>
 

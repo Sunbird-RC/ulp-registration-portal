@@ -1,14 +1,26 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject, Subject } from 'rxjs';
+// import { jsPDF } from 'jspdf';
+// import html2canvas from 'html2canvas';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UtilService {
 
+  kycCompleted: Subject<boolean> = new Subject<boolean>();
+
   constructor(
     private readonly translateService: TranslateService
   ) { }
+
+  private download(url: string, fileName: string) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+  }
 
   /**
    * Downloads a file with the given file name, content type, and content.
@@ -19,11 +31,36 @@ export class UtilService {
   downloadFile(fileName: string, fileType: string, content: string) {
     const blob = new Blob([content], { type: fileType });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    a.click();
+    this.download(url, fileName);
   }
+
+  getDownloadLink(fileType: string, content: string) {
+    const blob = new Blob([content], { type: fileType });
+    return window.URL.createObjectURL(blob);
+  }
+
+  downloadFileWithBlob(fileName: string, content: Blob | MediaSource) {
+    const url = window.URL.createObjectURL(content);
+    this.download(url, fileName);
+  }
+
+  downloadPdfWithContent(content: HTMLElement, fileName: string) {
+    // if (!content) {
+    //   console.error('Element not found!');
+    //   return;
+    // }
+    // html2canvas(content).then((canvas) => {
+    //   const pdf = new jsPDF('p', 'mm', 'a4');
+    //   const imgData = canvas.toDataURL('image/png');
+    //   const imgProps = pdf.getImageProperties(imgData);
+    //   const pdfWidth = pdf.internal.pageSize.getWidth();
+    //   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    //   pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    //   pdf.save(fileName);
+    // });
+  }
+
 
   /**
    * Generates an array of number ordinals with suffixes (e.g. '1st', '2nd', '3rd', '4th').
@@ -49,5 +86,20 @@ export class UtilService {
    */
   translateString(constant: string): string {
     return this.translateService.instant(constant);
+  }
+
+
+  variableNameToReadableString(variableName: string) {
+    // Replace underscores and split words
+    let words = variableName.split('_').join(' ').split(/(?=[A-Z])/).join(' ');
+
+    // Capitalize the first letter of each word
+    words = words.charAt(0).toUpperCase() + words.slice(1);
+
+    if (words.length < 4) {
+      words = words.toUpperCase();
+    }
+
+    return words;
   }
 }

@@ -8,6 +8,8 @@ import { GeneralService } from 'src/app/services/general/general.service';
 import { JSONSchema7 } from "json-schema";
 import { SchemaService } from 'src/app/services/data/schema.service';
 import { ToastMessageService } from 'src/app/services/toast-message/toast-message.service';
+import { AppConfig } from 'src/app/app.config';
+
 @Component({
   selector: 'dashboard',
   templateUrl: './dashboard.component.html',
@@ -40,7 +42,12 @@ export class DashboardComponent implements OnInit {
   item: any;
   templatePath: any;
   entityName: any;
-  constructor(public generalService: GeneralService, public router: Router, public toastMsg: ToastMessageService,
+  apiUrl: string;
+  domain: any;
+  recordCount: any;
+  lowerName= [];
+  a: string;
+  constructor(public generalService: GeneralService, public router: Router, public toastMsg: ToastMessageService,private config: AppConfig,
     private formlyJsonschema: FormlyJsonschema, public schemaService: SchemaService) {
 
   }
@@ -127,6 +134,9 @@ export class DashboardComponent implements OnInit {
       console.log(this.issuerInfo);
     });
 
+   
+    
+
   }
 
   getDocument() {
@@ -136,9 +146,27 @@ export class DashboardComponent implements OnInit {
     this.generalService.getData('Schema').subscribe((res) => {
       console.log(res);
       this.templatesItems = res;
+      console.log(this.templatesItems);
+      for(let i=0;i<this.templatesItems.length;i++){
+         this.a  = this.templatesItems[i].name.toLowerCase();
+        console.log(this.a);
+        this.lowerName.push(this.a);
+      }
     });
+
+    this.domain = this.config.getEnv('domainName');
+    this.apiUrl = this.domain + "/metrics/v1/metrics"
+    console.log(this.apiUrl);
+    this.generalService.getData(this.apiUrl,true).subscribe((res) => {
+     console.log(res);
+     this.recordCount = res;
+     console.log(typeof(this.recordCount))
+     
+    });
+  
   }
 
+ 
   openPreview() {
   }
 
@@ -154,5 +182,7 @@ export class DashboardComponent implements OnInit {
     }, (err) => {
       this.toastMsg.error('error', err.error.params.errmsg)
     });
+
+  
   }
 }

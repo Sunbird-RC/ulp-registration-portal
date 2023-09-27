@@ -1,42 +1,57 @@
-<section>
-  <h5 class="text-center">My Account</h5>
-  <div>
-    <p>Name: {{currentUser?.name}}</p>
-    <p>User Name: {{currentUser?.username}}</p>
-    <p>Principal Since: {{currentUser?.joiningdate}}</p>
-
-    <div>
-      <h4>Credentials</h4>
+<div class="mt-6 container">
+  <h5 class="fs-18">{{'ACCOUNT' | translate}}</h5>
+  <p *ngIf="!isAadhaarKYCCompleted && !isUDISEVerified" class="text-danger">{{'PLEASE_COMPLETE_YOUR_E_KYC_AND_UDISE' | translate}}</p>
+  <p *ngIf="!isAadhaarKYCCompleted && isUDISEVerified" class="text-danger">{{'PLEASE_COMPLETE_YOUR_E-KYC_TO_ISSUE' | translate}}</p>
+  <p *ngIf="!isUDISEVerified && isAadhaarKYCCompleted" class="text-danger">{{'PLEASE_COMPLETE_YOUR_UDISE_VERIFICATION_TO_ISSUE' | translate}}</p>
+  <div class="row">
+    <div class="col-3">
+      <div class="account-card">
+        <i class="fa fal fa-user-circle fa-lg"></i>
+        <p>{{accountDetails?.name}}</p>
+      </div>
+    </div>
+    <div class="col-9 user-info">
       <div class="row">
-        <div class="mb-3 col-sm-12 col-md-6 col-lg-6 col-xs-2"
-          *ngIf="credentials$ | async as credentialList; else loading">
-          <ng-container *ngIf="credentialList; else: noItems">
-            <div class="card" *ngFor="let item of credentialList" (click)="renderCertificate(item)">
-              <div class="card-body">
-                <div class="card-image">
-                  <img [src]="item?.logoUrl ? item.logoUrl : 'assets/images/headerlogo.png'" />
-                </div>
-                <div class="card-intro-info">
-                  <div class="mb-2 fs-14">
-                    {{ item?.credential_schema?.name }}
-                  </div>
-                  <div class="text-grey fs-12">
-                    {{ item?.credential_schema?.schema?.description }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ng-container>
-          <ng-template #noItems class="text-center">{{'NO_RECORDS_FOUND' | translate}}</ng-template>
+        <div class="col-3 title d-flex align-items-center">{{'EMAIL_ID' | translate}}</div>
+        <div class="col-5 value text-grey-color">{{accountDetails?.email || '---'}}</div>
+      </div>
+      <div class="row">
+        <div class="col-3 title d-flex align-items-center">{{'MOBILE_NUMBER' | translate}}</div>
+        <div class="col-5 value text-grey-color">{{accountDetails?.username}}</div>
+      </div>
+      <div class="row">
+        <div class="col-3 title d-flex align-items-center" [ngClass]="{'text-danger': !accountDetails?.kyc_aadhaar_token}">
+          <span *ngIf="isAadhaarKYCCompleted">{{'AADHAAR_TOKEN' | translate}}</span>
+          <span *ngIf="!isAadhaarKYCCompleted">{{'AADHAAR_ID' | translate}}</span>
         </div>
-        <ng-template #loading class="text-center">
-          <div class="d-flex justify-content-center">
-            <div class="spinner-border" style="width: 5rem; height: 5rem" role="status">
-              <span class="sr-only">{{ "LOADING" | translate }}</span>
-            </div>
-          </div>
-        </ng-template>
+        <div class="col-5 value text-grey-color">
+          <span *ngIf="isAadhaarKYCCompleted">{{accountDetails?.kyc_aadhaar_token || '---'}}</span>
+        </div>
+        <button *ngIf="!isAadhaarKYCCompleted" class="btn btn-primary ml-2" (click)="completeKYC()">{{'COMPLETE_KYC' | translate}}</button>
+      </div>
+      <div class="row">
+        <div class="col-3 title d-flex align-items-center" [ngClass]="{'text-danger': !accountDetails?.school_id}">{{'SCHOOL_ID' | translate}}</div>
+        <div class="col-5 value text-grey-color">
+          <span *ngIf="isUDISEVerified">{{accountDetails?.school_id || '---'}}</span>
+        </div>
+        <button *ngIf="!isUDISEVerified" class="btn btn-primary ml-2" (click)="verifyUDISE()">{{'VERIFY_UDISE' | translate}}</button>
+      </div>
+      <div class="row">
+        <div class="col-3 title d-flex align-items-center" [ngClass]="{'text-danger': !accountDetails?.school_name}" >{{'School Name' | translate}}</div>
+        <div class="col-5 value text-grey-color">{{accountDetails?.school_name || '---'}}</div>
       </div>
     </div>
   </div>
-</section>
+</div>
+
+
+<ng-template #successModal tabindex="-1" role="dialog" aria-labelledby="successModal">
+  <div class="animate-bottom">
+    <div class="modal-body">
+      <p class="text-center mb-0 p-2 fs-16">
+        <i style="color: green" class="fa far fa-check-circle"></i>
+        &nbsp;&nbsp;&nbsp;{{modalMessage}}
+      </p>
+    </div>
+  </div>
+</ng-template>
